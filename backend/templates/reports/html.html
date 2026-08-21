@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Security Assessment Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 30px; }
+        h3 { color: #444; margin-top: 20px; }
+        p { color: #666; line-height: 1.6; }
+        .summary { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0; }
+        .finding { background-color: #fafafa; border-left: 4px solid #4CAF50; padding: 15px; margin: 15px 0; border-radius: 0 5px 5px 0; }
+        .finding h4 { color: #2c3e50; margin-top: 0; }
+        .risk-critical { border-left-color: #e74c3c; }
+        .risk-high { border-left-color: #e67e22; }
+        .risk-medium { border-left-color: #f39c12; }
+        .risk-low { border-left-color: #2ecc71; }
+        .code { background-color: #f1f1f1; padding: 10px; border-radius: 5px; overflow-x: auto; font-family: monospace; }
+        .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .table th { background-color: #f2f2f2; }
+        .table tr:nth-child(even) { background-color: #f2f2f2; }
+        .severity-critical { color: #e74c3c; font-weight: bold; }
+        .severity-high { color: #e67e22; font-weight: bold; }
+        .severity-medium { color: #f39c12; font-weight: bold; }
+        .severity-low { color: #2ecc71; font-weight: bold; }
+        .footer { text-align: center; margin-top: 50px; color: #777; font-size: 0.9em; }
+        .vulnerability-icon { display: inline-block; width: 20px; height: 20px; background-color: #e74c3c; color: white; text-align: center; line-height: 20px; border-radius: 50%; margin-right: 5px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Security Assessment Report</h1>
+
+        <div class="summary">
+            <h2>Executive Summary</h2>
+            <p><strong>Assessment of:</strong> {{ report.lab_name }}</p>
+            <p><strong>Generated on:</strong> {{ report.generated_at }}</p>
+            <p><strong>Total attacks performed:</strong> {{ report.total_attempts }}</p>
+            <p><strong>Vulnerabilities detected:</strong> {{ report.vulnerabilities_detected }}</p>
+            <p><strong>Overall risk level:</strong> <span class="severity-{{ report.overall_risk }}">{{ report.overall_risk|capitalize }}</span></p>
+        </div>
+
+        <h2>Findings</h2>
+        {% for finding in report.findings %}
+        <div class="finding risk-{{ finding.risk_level }}">
+            <h4><span class="vulnerability-icon">{{ finding.vulnerability_type[0] }}</span> {{ finding.vulnerability_type }}</h4>
+            <p><strong>Risk Level:</strong> <span class="severity-{{ finding.risk_level }}">{{ finding.risk_level|capitalize }}</span></p>
+            <p><strong>Technical Explanation:</strong><br>{{ finding.technical_explanation }}</p>
+            <p><strong>Example Exploitation:</strong><br>{{ finding.example_exploitation }}</p>
+            <p><strong>Prevention:</strong><br>{{ finding.prevention }}</p>
+            <p><strong>Secure Code Recommendation:</strong></p>
+            <pre class="code">{{ finding.secure_code_recommendation }}</pre>
+
+            <h5>Evidence:</h5>
+            {% for evidence in finding.evidence %}
+            <div style="margin: 10px 0;">
+                <strong>Payload:</strong><br>{{ evidence.payload|eol2br }}
+                <br><strong>Request:</strong><br>{{ evidence.request|eol2br }}
+                <br><strong>Response:</strong><br>{{ evidence.response|eol2br }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <h2>Attack Evidence</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Payload</th>
+                    <th>Result</th>
+                    <th>Severity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in report.logs %}
+                <tr>
+                    <td>{{ log.timestamp }}</td>
+                    <td>{{ log.payload|eol2br }}</td>
+                    <td>{{ log.result|capitalize }}</td>
+                    <td><span class="severity-{{ log.severity }}">{{ log.severity|capitalize }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>AI Recommendations</h2>
+        <p>{{ report.ai_recommendations }}</p>
+
+        {% if report.ongoing_recommendations %}
+        <h2>Ongoing Recommendations</h2>
+        <ul>
+        {% for rec in report.ongoing_recommendations %}
+            <li>{{ rec }}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="footer">
+            <p>Generated by AI-Powered Web Application Attack Simulation Platform</p>
+            <p>© {{ report.year }} • For Educational Use Only</p>
+        </div>
+    </div>
+</body>
+</html>

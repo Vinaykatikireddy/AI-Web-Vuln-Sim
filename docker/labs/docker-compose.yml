@@ -1,0 +1,72 @@
+services:
+  login-lab:
+    build:
+      context: ./login
+      dockerfile: Dockerfile
+    container_name: login_lab
+    ports:
+      - "5001:5000"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  blog-lab:
+    build:
+      context: ./blog
+      dockerfile: Dockerfile
+    container_name: blog_lab
+    ports:
+      - "5002:5000"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  ecommerce-lab:
+    build:
+      context: ./ecommerce
+      dockerfile: Dockerfile
+    container_name: ecommerce_lab
+    ports:
+      - "5003:5000"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  fileupload-lab:
+    build:
+      context: ./file-upload
+      dockerfile: Dockerfile
+    container_name: fileupload_lab
+    ports:
+      - "5004:5000"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+networks:
+  lab-network:
+    driver: bridge

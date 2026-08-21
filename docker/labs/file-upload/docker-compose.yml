@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  fileupload-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fileupload_lab
+    ports:
+      - "5004:5000"
+    environment:
+      - SECRET_KEY=Y8OHPUkw6l0tNSoW1c2sQu%hV5ADdKF!ZCpqI3JEBGeL#$7bxvg9@*f^myiTz&Mr
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: "no"
+
+networks:
+  lab-network:
+    driver: bridge
