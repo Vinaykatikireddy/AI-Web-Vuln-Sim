@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     redis-server \
     libglib2.0-0 \
+    redis-server \
     libpango-1.0-0 \
     libpango1.0-dev \
     libharfbuzz-dev \
