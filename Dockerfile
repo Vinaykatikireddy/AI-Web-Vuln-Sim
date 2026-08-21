@@ -19,7 +19,7 @@ COPY . .
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Create log directory
-RUN mkdir -p /var/log/
+RUN mkdir -p /var/log/supervisord && chown -R root:root /var/log/supervisord
 
 # Set environment variables
 ENV DATABASE_URL=${DATABASE_URL} \
