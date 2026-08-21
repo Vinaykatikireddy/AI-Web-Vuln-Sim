@@ -22,8 +22,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/
 
 # Set environment variables
-ENV DATABASE_URL="${DATABASE_URL}" \
-    SECRET_KEY="${SECRET_KEY}" \
+ENV DATABASE_URL=${DATABASE_URL} \
+    SECRET_KEY=${SECRET_KEY}
 
 # Expose application port
 EXPOSE 7860
