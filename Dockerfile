@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     python3-dev \
     redis-server \
+    fuse-overlayfs \
     libglib2.0-0 \
-    redis-server \
     libpango-1.0-0 \
     libpango1.0-dev \
     libharfbuzz-dev \
