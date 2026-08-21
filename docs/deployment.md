@@ -53,9 +53,6 @@ For a production deployment on a single server:
    # AI Configuration
    AI_API_KEY=your-production-ai-api-key
    
-   # Application configuration
-   APP_ENV=production
-   LOG_LEVEL=info
    ```
 
 2. **Set Up SSL Certificates**
