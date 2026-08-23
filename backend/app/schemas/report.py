@@ -19,7 +19,7 @@ class ReportOut(ReportBase):
     status: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReportDetail(ReportOut):
