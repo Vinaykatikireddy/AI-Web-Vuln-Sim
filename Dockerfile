@@ -21,7 +21,8 @@ COPY backend/requirements.txt ./requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY ./backend /app/backend
+COPY ./docker /app/docker
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
