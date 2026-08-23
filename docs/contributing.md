@@ -17,7 +17,6 @@ Before contributing to this project, please ensure you have the following instal
 - Node.js 18+
 - Git
 - PostgreSQL
-- Redis
 
 ### Setting Up the Development Environment
 

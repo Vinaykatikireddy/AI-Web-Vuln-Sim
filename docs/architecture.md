@@ -54,7 +54,6 @@ The data flow follows this sequence:
 
 ### Backend - Log Storage
 - PostgreSQL database for structured logging
-- Redis cache for temporary attack data
 
 ### Backend - Report Generator
 - Internal module call
@@ -89,7 +88,6 @@ The architecture supports horizontal scaling:
 1. **Stateless Backend** - Backend services are stateless, allowing for easy load balancing
 2. **Database Scaling** - PostgreSQL can be scaled with read replicas
 3. **Container Scaling** - Docker containers can be scaled using orchestration tools like Kubernetes
-4. **Caching** - Redis provides caching layer to reduce database load
 
 ## Monitoring and Logging
 
@@ -125,7 +123,6 @@ The architecture supports future enhancements:
 - **React/Vite/TypeScript** for frontend: Modern, performant, type-safe
 - **FastAPI** for backend: High performance, automatic OpenAPI documentation
 - **PostgreSQL** for database: Robust, reliable, ACID-compliant
-- **Redis** for cache: Fast in-memory data store
 - **Docker** for isolation: Industry standard for containerization
 
 ### Architecture Advantages

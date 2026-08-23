@@ -145,7 +145,6 @@ For cloud deployment, we recommend using a managed Kubernetes service:
 
    Create `k8s/` directory with deployment manifests:
    - `postgres-deployment.yaml`
-   - `redis-deployment.yaml`
    - `backend-deployment.yaml`
    - `frontend-deployment.yaml`
    - `nginx-deployment.yaml`
@@ -246,9 +245,6 @@ Regular backups are essential for production deployments:
 ```bash
 # PostgreSQL backup
 pg_dump -h localhost -U user -d attack_simulation > attack_simulation_$(date +%Y%m%d_%H%M%S).sql
-
-# Redis backup (AOF file)
-cp /var/lib/redis/dump.rdb /backups/redis_dump_$(date +%Y%m%d_%H%M%S).rdb
 
 # Schedule with cron (daily at 2:30 AM)
 30 2 * * * pg_dump -h localhost -U user -d attack_simulation > /backups/attack_simulation_$(date +\%Y\%m\%d_\%H\%M\%S).sql
@@ -471,9 +467,6 @@ For data recovery scenarios:
    ```bash
    # For PostgreSQL
    head -n 10 attack_simulation_*.sql
-   
-   # For Redis
-   redis-cli --rdb dump.rdb
    ```
 
 3. **Execute recovery** using the appropriate procedure for your specific backup type
