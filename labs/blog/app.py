@@ -146,9 +146,9 @@ def search():
 def health():
     return jsonify({"status": "healthy"})
 
-if __name__ == '__main__':
-    # Initialize database
-    init_db()
+# Initialize database
+init_db()
 
+if __name__ == '__main__':
     # Run application
     app.run(host='0.0.0.0', port=5000, debug=False)
