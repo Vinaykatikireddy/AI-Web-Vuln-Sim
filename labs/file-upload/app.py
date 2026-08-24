@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template_string, redirect, url_for
 import os
 import uuid
+import templates
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -27,12 +28,12 @@ def allowed_file(filename):
 # Route for homepage
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template_string(templates.HOME_PAGE)
 
 # Route for file upload form
 @app.route('/upload')
 def upload_form():
-    return render_template('upload.html')
+    return render_template_string(templates.UPLOAD_PAGE)
 
 # Route for handling file upload
 @app.route('/upload', methods=['POST'])
@@ -61,9 +62,9 @@ def upload_file():
 
         # Vulnerability: Files are accessible directly via URL
         # This allows remote code execution if a web shell is uploaded
-        return render_template('upload_success.html', filename=filename)
+        return render_template_string(templates.SUCCESS_PAGE, filename=filename)
     else:
-        return render_template('upload.html', error='File type not allowed')
+        return render_template_string(templates.UPLOAD_PAGE, error='File type not allowed')
 
 # Route for viewing uploaded files (vulnerable)
 @app.route('/uploads/<filename>')
@@ -86,7 +87,7 @@ def admin():
         if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
             files.append(filename)
 
-    return render_template('admin.html', files=files)
+    return render_template_string(templates.ADMIN_PAGE, files=files)
 
 # Health check endpoint
 @app.route('/health')
