@@ -293,11 +293,6 @@ if not os.path.exists('templates/admin.html'):
     with open('templates/admin.html', 'w') as f:
         f.write(admin_template)
 
-# Health check endpoint
-@app.route('/health')
-def health():
-    return jsonify({"status": "healthy"})
-
 if __name__ == '__main__':
     # Run application
     app.run(host='0.0.0.0', port=5000, debug=False)

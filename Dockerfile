@@ -4,7 +4,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    docker.io \
     supervisor \
     python3-dev \
     fuse-overlayfs \
