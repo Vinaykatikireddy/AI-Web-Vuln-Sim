@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import base
-from app.schemas import payload as payload_schemas
+from models import base
+from schemas import payload as payload_schemas
 
 def get_payload(db: Session, payload_id: int):
     return db.query(base.Payload).filter(base.Payload.id == payload_id).first()

@@ -1,9 +1,9 @@
 import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime
-from app.models import base
-from app.database import get_db
-from app.services.attack_engine import AttackEngine
+from models import base
+from database import get_db
+from services.attack_engine import AttackEngine
 import logging
 from sqlalchemy.orm import Session
 

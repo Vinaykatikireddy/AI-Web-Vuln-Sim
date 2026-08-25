@@ -3,13 +3,13 @@ from typing import Dict, List, Any
 from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
-from app.schemas import scan as scan_schemas
-from app.cruds import scan as scan_crud
-from app.cruds import log as log_crud
-from app.cruds import payload as payload_crud
-from app.models import base
-from app.database import get_db
-from app.services.lab_manager import LabManager
+from schemas import scan as scan_schemas
+from cruds import scan as scan_crud
+from cruds import log as log_crud
+from cruds import payload as payload_crud
+from models import base
+from database import get_db
+from services.lab_manager import LabManager
 import logging
 from sqlalchemy.orm import Session
 

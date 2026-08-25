@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import base
-from app.schemas import payload as payload_schemas
-from app.cruds import payload as payload_crud
-from app.core import security
+from database import get_db
+from models import base
+from schemas import payload as payload_schemas
+from cruds import payload as payload_crud
+from core import security
 
 router = APIRouter(prefix="/api", tags=["payloads"])
 

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.schemas import lab as lab_schemas
-from app.cruds import lab as lab_crud
+from database import get_db
+from schemas import lab as lab_schemas
+from cruds import lab as lab_crud
+
 
 router = APIRouter(prefix="/api", tags=["lab"])
 

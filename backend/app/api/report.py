@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import base
-from app.schemas import report as report_schemas
-from app.cruds import report as report_crud
-from app.cruds import scan as scan_crud
-from app.services.report_generator import ReportGenerator
-from app.core import security
+from database import get_db
+from models import base
+from schemas import report as report_schemas
+from cruds import report as report_crud
+from cruds import scan as scan_crud
+from services.report_generator import ReportGenerator
+from core import security
 from typing import Dict, Any
 import json
 

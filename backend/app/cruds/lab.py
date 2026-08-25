@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.models import base
-from app.schemas import lab as lab_schemas
-from app.services.lab_manager import LabManager
+from models import base
+from schemas import lab as lab_schemas
+from services.lab_manager import LabManager
 
 lab_manager = LabManager()
 

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.models import base
+from models import base
 
 
 def create_log(db: Session, log: base.Log) -> base.Log:

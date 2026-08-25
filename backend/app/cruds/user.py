@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.models import base
-from app.schemas import user as user_schemas
-from app.core.security import get_password_hash, verify_password
+from models import base
+from schemas import user as user_schemas
+from core.security import get_password_hash, verify_password
 
 
 def get_user_by_username(db: Session, username: str):

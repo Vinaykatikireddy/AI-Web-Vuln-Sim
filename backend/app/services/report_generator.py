@@ -5,11 +5,11 @@ from datetime import datetime
 from app.services.ai_service import analyze_attacks_with_ai
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-from app.cruds import scan as scan_crud
-from app.cruds import report as report_crud
-from app.database import get_db
-from app.services.logging_service import LoggingService
-from app.services.attack_engine import AttackEngine
+from cruds import scan as scan_crud
+from cruds import report as report_crud
+from database import get_db
+from services.logging_service import LoggingService
+from services.attack_engine import AttackEngine
 import logging
 from sqlalchemy.orm import Session
 

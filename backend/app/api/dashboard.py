@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import base
-from app.schemas import lab as lab_schemas, scan as scan_schemas
-from app.core import security
+from database import get_db
+from models import base
+from schemas import lab as lab_schemas, scan as scan_schemas
+from core import security
 
 router = APIRouter(prefix="/api", tags=["dashboard"])
 

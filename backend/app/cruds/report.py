@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import base
-from app.schemas import report as report_schemas
+from models import base
+from schemas import report as report_schemas
 
 
 def get_report(db: Session, report_id: int):

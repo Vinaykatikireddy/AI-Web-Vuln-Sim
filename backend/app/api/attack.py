@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import base
-from app.schemas import scan as scan_schemas
-from app.services.attack_engine import AttackEngine
-from app.cruds import scan as scan_crud
-from app.core import security
+from database import get_db
+from models import base
+from schemas import scan as scan_schemas
+from services.attack_engine import AttackEngine
+from cruds import scan as scan_crud
+from core import security
 from typing import Dict, Any
 
 router = APIRouter(prefix="/api", tags=["attacks"])
