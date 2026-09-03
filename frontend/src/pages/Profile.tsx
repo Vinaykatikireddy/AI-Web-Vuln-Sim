@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { errorHandler } from '../utils/errorHandler'
-import { changePassword, getSessions, deleteAccount } from '../api/auth'
 import { retry } from '../utils/retry'
 import { cancelRequest } from '../utils/cancelRequest'
 
@@ -18,7 +17,7 @@ const Profile: React.FC = () => {
         const { cancelTokenSource, cancelRequest: cancel } = cancelRequest();
         const fetchUserProfile = async () => {
             try {
-                const response = await retry(() => axios.get(`${API_BASE_URL}/api/auth/me`, {
+                const response = await retry(() => axios.get(`${API_BASE_URL}/auth/me`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     },
@@ -43,7 +42,7 @@ const Profile: React.FC = () => {
         setIsSaving(true)
         const { cancelTokenSource, cancelRequest: cancel } = cancelRequest();
         try {
-            const response = await retry(() => axios.put(`${API_BASE_URL}/api/auth/me`, {
+            const response = await retry(() => axios.put(`${API_BASE_URL}/auth/me`, {
                 username: user.username,
                 email: user.email
             }, {
@@ -78,20 +77,12 @@ const Profile: React.FC = () => {
 
         setIsSaving(true);
         try {
-            await changePassword(currentPassword, newPassword);
+            await axios.post(
+                `${API_BASE_URL}/api/auth/change-password`,
+                { current_password: currentPassword, new_password: newPassword },
+                {headers: {'Authorization': `Bearer ${localStorage.getItem('auth')}`}}
+            );
             alert("Password changed successfully!");
-        } catch (err: any) {
-            setError(errorHandler(err));
-        } finally {
-            setIsSaving(false);
-        }
-    }
-
-    const handleViewSessions = async () => {
-        setIsSaving(true);
-        try {
-            const sessions = await getSessions();
-            alert(`Active Sessions:\n${sessions.map((session: any) => `- ${session.ip} (${new Date(session.created_at).toLocaleString()})`).join('\n')}`);
         } catch (err: any) {
             setError(errorHandler(err));
         } finally {
@@ -247,18 +238,6 @@ const Profile: React.FC = () => {
                                          className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
                                      >
                                          {isSaving ? 'Processing...' : 'Change Password'}
-                                     </button>
-                                 </div>
-
-                                 <div className="bg-gray-50 rounded-lg p-4">
-                                     <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication</h3>
-                                     <p className="text-gray-600 mb-4">View your active sessions and authentication details.</p>
-                                     <button
-                                         onClick={handleViewSessions}
-                                         disabled={isSaving}
-                                         className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
-                                     >
-                                         {isSaving ? 'Loading...' : 'View Session'}
                                      </button>
                                  </div>
                             </div>

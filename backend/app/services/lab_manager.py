@@ -1,74 +1,52 @@
 import docker
-from typing import Dict, List, Optional
+import requests
+import secrets
+from typing import Dict, Optional
 import logging
+from models import base
+from database import get_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Shared Docker client so multiple LabManager instances don't each retry (and log) a failed connection
+_docker_client = None
+_docker_init_attempted = False
+
+
+def _get_docker_client():
+    global _docker_client, _docker_init_attempted
+    if not _docker_init_attempted:
+        _docker_init_attempted = True
+        try:
+            # Initialize Docker client (only if Docker is available)
+            _docker_client = docker.from_env()
+            logger.info("Docker client initialized")
+        except Exception as e:
+            logger.warning(
+                f"{type(e).__name__}: Docker unavailable, labs will use their external URLs"
+            )
+            _docker_client = None
+    return _docker_client
+
+
 class LabManager:
     def __init__(self):
-        try:
-            # Initialize Docker client
-            self.docker_client = docker.from_env()
-        except Exception as e:
-            logger.error(f"Failed to initialize Docker client: {str(e)}")
-            raise
+        self.docker_client = _get_docker_client()
 
-    def get_available_labs(self) -> List[Dict]:
-        """
-        Get list of available labs from the labs directory
-        """
-        labs = [
-            {
-                "id": 1,
-                "name": "Simple Login",
-                "description": "Vulnerable login application with SQL Injection and weak authentication",
-                "docker_image": "attack-simulation-login",
-                "port": 5001,
-                "vulnerabilities": ["SQL Injection", "Weak Authentication"]
-            },
-            {
-                "id": 2,
-                "name": "Blog",
-                "description": "Blog application with Stored and Reflected XSS vulnerabilities",
-                "docker_image": "attack-simulation-blog",
-                "port": 5002,
-                "vulnerabilities": ["Stored XSS", "Reflected XSS"]
-            },
-            {
-                "id": 3,
-                "name": "Ecommerce",
-                "description": "Ecommerce application with IDOR vulnerabilities",
-                "docker_image": "attack-simulation-ecommerce",
-                "port": 5003,
-                "vulnerabilities": ["IDOR", "Insecure Admin Panel"]
-            },
-            {
-                "id": 4,
-                "name": "File Upload",
-                "description": "File upload service with unsafe file upload vulnerability",
-                "docker_image": "attack-simulation-fileupload",
-                "port": 5004,
-                "vulnerabilities": ["Unsafe File Upload", "Path Traversal"]
-            }
-        ]
-        return labs
-
-    def get_lab_by_id(self, lab_id: int) -> Optional[Dict]:
-        """
-        Get a specific lab by ID
-        """
-        labs = self.get_available_labs()
-        for lab in labs:
-            if lab["id"] == lab_id:
-                return lab
+    def get_lab_by_id(self, lab_id: int, db = next(get_db())) -> Optional[Dict]:
+        labs = db.query(
+            base.Lab.external_url,
+            base.Lab.docker_image,
+            base.Lab.name,
+            base.Lab.port
+            ).filter(base.Lab.id == lab_id).first()
+        if labs:
+            return labs.__dict__
         return None
 
     def start_lab(self, lab_id: int) -> bool:
-        """
-        Start a vulnerable lab container
-        """
         lab = self.get_lab_by_id(lab_id)
         if not lab:
             return False
@@ -76,7 +54,7 @@ class LabManager:
         try:
             # Build the image if it doesn't exist
             lab_dir = f"../../docker/labs/{lab['name'].lower().replace(' ', '-')}"
-            image_name = lab['docker_image']
+            image_name = lab["docker_image"]
 
             # Check if image exists
             try:
@@ -84,16 +62,14 @@ class LabManager:
             except docker.errors.ImageNotFound:
                 # Build the image
                 logger.info(f"Building image for {lab['name']}...")
-                self.docker_client.images.build(
-                    path=lab_dir,
-                    tag=image_name,
-                    rm=True
-                )
+                self.docker_client.images.build(path=lab_dir, tag=image_name, rm=True)
                 logger.info(f"Built image for {lab['name']}")
 
             # Remove existing container if it exists
             try:
-                container = self.docker_client.containers.get(f"{lab['name'].lower().replace(' ', '-')}_lab")
+                container = self.docker_client.containers.get(
+                    f"{lab['name'].lower().replace(' ', '-')}_lab"
+                )
                 container.stop()
                 container.remove()
                 logger.info(f"Removed existing container for {lab['name']}")
@@ -104,10 +80,10 @@ class LabManager:
             container = self.docker_client.containers.run(
                 image=image_name,
                 name=f"{lab['name'].lower().replace(' ', '-')}_lab",
-                ports={{f"{lab['port']}/tcp": lab['port']}},
+                ports={f"{lab['port']}/tcp": lab["port"]},
                 detach=True,
                 network="attacksimulation_default",
-                environment={{"SECRET_KEY": "lab-secret-key-123"}}
+                environment={"SECRET_KEY": secrets.token_hex(32)},
             )
 
             logger.info(f"Started container for {lab['name']} with ID: {container.id}")
@@ -123,6 +99,18 @@ class LabManager:
         """
         lab = self.get_lab_by_id(lab_id)
         if not lab:
+            return False
+
+        # Skip Docker operations if lab uses an external URL
+        if lab.get("external_url"):
+            logger.info(
+                f"External lab at {lab['external_url']} does not require stopping."
+            )
+            return True
+
+        # Skip Docker operations if Docker client is not available
+        if not self.docker_client:
+            logger.error("Docker client is not available. Cannot stop local lab.")
             return False
 
         try:
@@ -142,6 +130,17 @@ class LabManager:
         """
         Reset a vulnerable lab to its initial state
         """
+        lab = self.get_lab_by_id(lab_id)
+        if not lab:
+            return False
+
+        # Skip reset for external labs (no action needed)
+        if lab.get("external_url"):
+            logger.info(
+                f"External lab at {lab['external_url']} does not require reset."
+            )
+            return True
+
         # Stop the lab
         if not self.stop_lab(lab_id):
             return False
@@ -162,11 +161,21 @@ class LabManager:
         return True
 
     def get_lab_status(self, lab_id: int) -> str:
-        """
-        Get the status of a lab (running, stopped, error)
-        """
         lab = self.get_lab_by_id(lab_id)
         if not lab:
+            return "error"
+
+        # Check if lab uses an external URL
+        if lab.get("external_url"):
+                response = requests.get(lab["external_url"], timeout=100)
+        
+                if response.status_code == 200:
+                    return "running"
+                return "error"
+
+        # Skip Docker operations if Docker client is not available
+        if not self.docker_client:
+            logger.error("Docker client is not available. Cannot check local lab status.")
             return "error"
 
         try:
@@ -174,7 +183,10 @@ class LabManager:
             container = self.docker_client.containers.get(container_name)
 
             # Check health status if available
-            if container.status == "running" and container.attrs['State']['Health']['Status'] == "healthy":
+            if (
+                container.status == "running"
+                and container.attrs["State"]["Health"]["Status"] == "healthy"
+            ):
                 return "running"
             elif container.status == "running":
                 return "starting"

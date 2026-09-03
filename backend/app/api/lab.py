@@ -2,74 +2,63 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import lab as lab_schemas
-from cruds import lab as lab_crud
-
+from models import base
+from services.lab_manager import LabManager
 
 router = APIRouter(prefix="/api", tags=["lab"])
 
+lab_manager = LabManager()
+
+def update_lab_status(db: Session, lab_id: int, status: str):
+    db_lab = db.query(base.Lab).filter(base.Lab.id == lab_id).first()
+    if db_lab:
+        db_lab.status = status
+        db.commit()
+        db.refresh(db_lab)
+    return db_lab
+
+
 @router.get("/labs", response_model=list[lab_schemas.LabOut])
-def get_labs(
-    db: Session = Depends(get_db)
-):
-    """Get all available vulnerable labs"""
-    return lab_crud.get_labs(db)
+def get_labs(db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
+    return db.query(base.Lab).offset(skip).limit(limit).all()
 
 
 @router.get("/labs/{lab_id}", response_model=lab_schemas.LabOut)
-def get_lab(
-    lab_id: int,
-    db: Session = Depends(get_db)
-):
-    """Get a specific vulnerable lab"""
-    lab = lab_crud.get_lab(db, lab_id)
+def get_lab(lab_id: int, db: Session = Depends(get_db)):
+    lab = db.query(base.Lab).filter(base.Lab.id == lab_id).first()
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
     return lab
 
 
 @router.post("/labs/start", response_model=lab_schemas.LabOut)
-def start_lab(
-    lab_id: int,
-    db: Session = Depends(get_db)
-):
-    """Start a vulnerable lab"""
-    lab = lab_crud.start_lab(db, lab_id)
-    if not lab:
+def start_lab(lab_id: int, db: Session = Depends(get_db)):
+    success = lab_manager.start_lab(lab_id)
+    if success:
+        return update_lab_status(db, lab_id, "running")
+    else:
         raise HTTPException(status_code=404, detail="Lab not found or failed to start")
-    return lab
 
 
 @router.post("/labs/stop", response_model=lab_schemas.LabOut)
-def stop_lab(
-    lab_id: int,
-    db: Session = Depends(get_db)
-):
-    """Stop a vulnerable lab"""
-    lab = lab_crud.stop_lab(db, lab_id)
-    if not lab:
-        raise HTTPException(status_code=404, detail="Lab not found or failed to stop")
-    return lab
+def stop_lab(lab_id: int, db: Session = Depends(get_db)):
+    success = lab_manager.stop_lab(lab_id)
+    if success:
+        return update_lab_status(db, lab_id, "stopped")
+    raise HTTPException(status_code=404, detail="Lab not found or failed to stop")
 
 
 @router.post("/labs/reset", response_model=lab_schemas.LabOut)
-def reset_lab(
-    lab_id: int,
-    db: Session = Depends(get_db)
-):
-    """Reset a vulnerable lab to its initial state"""
-    lab = lab_crud.reset_lab(db, lab_id)
-    if not lab:
-        raise HTTPException(status_code=404, detail="Lab not found or failed to reset")
-    return lab
+def reset_lab(lab_id: int, db: Session = Depends(get_db)):
+    success = lab_manager.reset_lab(lab_id)
+    if success:
+        return update_lab_status(db, lab_id, "running")
+    raise HTTPException(status_code=404, detail="Lab not found or failed to reset")
 
 
 @router.post("/labs/delete", response_model=lab_schemas.LabOut)
-def delete_lab(
-    lab_id: int,
-    db: Session = Depends(get_db)
-):
-    """Delete a vulnerable lab"""
-    lab = lab_crud.delete_lab(db, lab_id)
-    if not lab:
-        raise HTTPException(status_code=404, detail="Lab not found or failed to delete")
-    return lab
+def delete_lab(lab_id: int, db: Session = Depends(get_db)):
+    success = lab_manager.delete_lab(db, lab_id)
+    if success:
+        return update_lab_status(db, lab_id, "deleted")
+    raise HTTPException(status_code=404, detail="Lab not found or failed to delete")

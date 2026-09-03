@@ -96,7 +96,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('user')
     setToken(null)
     setUser(null)
-    navigate("/login")
   }
 
   useEffect(() => {

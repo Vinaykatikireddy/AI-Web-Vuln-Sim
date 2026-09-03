@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logoSvg from '../logo.svg';
 
 const Layout: React.FC = () => {
   const { user, loading, logout } = useAuth()
@@ -23,7 +24,7 @@ const Layout: React.FC = () => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <img className="h-8 w-auto" src="https://www.gstatic.com/images/branding/productlogos/keep_2026/v2/web-48dp/logo_keep_2026_color_2x_web_48dp.png" alt="Attack Simulation Platform" />
+                <img className="h-8 w-auto" src={logoSvg} alt="Attack Simulation Platform" />
                 <span className="ml-2 text-xl font-bold text-gray-900">AttackSim</span>
               </div>
               <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">

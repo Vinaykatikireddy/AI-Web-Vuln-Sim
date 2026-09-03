@@ -36,7 +36,7 @@ const Labs: React.FC = () => {
                 }
             })
             // Refresh labs list
-            const response = await axios.get('http://localhost:8000/api/labs', {
+            const response = await axios.get(`${API_BASE_URL}/api/labs`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
@@ -55,7 +55,7 @@ const Labs: React.FC = () => {
                 }
             })
             // Refresh labs list
-            const response = await axios.get('http://localhost:8000/api/labs', {
+            const response = await axios.get(`${API_BASE_URL}/api/labs`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
@@ -116,29 +116,37 @@ const Labs: React.FC = () => {
                                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{lab.name}</h3>
                                     <p className="text-gray-600 mb-4">{lab.description || 'No description available'}</p>
 
-                                    <div className="flex items-center mb-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${lab.status === 'running' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {lab.status.charAt(0).toUpperCase() + lab.status.slice(1)}
-                                        </span>
-                                    </div>
+                                    {lab.status === 'error' && (
+                                        <div className="flex items-center mb-4">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${lab.status === 'running' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {lab.status.charAt(0).toUpperCase() + lab.status.slice(1)}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className="flex space-x-2">
-                                        {lab.status === 'stopped' ? (
+                                        {lab.status === 'error' ? (
                                             <button
-                                                onClick={() => handleStartLab(lab.id)}
-                                                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                            >
-                                                Start Lab
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleStopLab(lab.id)}
-                                                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                                            >
-                                                Stop Lab
-                                            </button>
-                                        )}
-
+                                                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 cursor-not-allowed"
+                                                >
+                                                    Lab Broken
+                                                </button>
+                                        ) : lab.status === 'stopped' ? (
+                                                <button
+                                                    onClick={() => handleStartLab(lab.id)}
+                                                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                >
+                                                    Start Lab
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleStopLab(lab.id)}
+                                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                                >
+                                                    Stop Lab
+                                                </button>
+                                            )
+                                        }
                                         <Link
                                             to={`/lab/${lab.id}`}
                                             className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"

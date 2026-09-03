@@ -14,7 +14,7 @@ export const errorHandler = (error: any): string => {
         case 401:
             localStorage.removeItem('auth');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            //window.location.href = '/login';
             return "Unauthorized. Please log in again.";
         case 403:
             return "You don't have permission to perform this action.";

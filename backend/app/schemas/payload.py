@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
+
 
 
 class PayloadBase(BaseModel):
@@ -22,7 +24,7 @@ class PayloadUpdate(BaseModel):
 
 class PayloadOut(PayloadBase):
     id: int
-    created_at: str
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -1,26 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import base
 from schemas import scan as scan_schemas
 from services.attack_engine import AttackEngine
-from cruds import scan as scan_crud
 from core import security
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["attacks"])
 
 attack_engine = AttackEngine()
 
+
+def update_scan_status(db: Session, scan_id: int, status: str):
+    db_scan = db.query(base.Scan).filter(base.Scan.id == scan_id).first()
+    if db_scan:
+        db_scan.status = status
+        db.commit()
+        db.refresh(db_scan)
+    return db_scan
+
+
 @router.post("/scans/run", response_model=scan_schemas.ScanOut)
-def run_attack_simulation(
-    scan_data: scan_schemas.ScanCreate,
-    current_user: base.User = Depends(security.get_current_active_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Run an attack simulation against a vulnerable lab
-    """
+def run_attack_simulation(scan_data: scan_schemas.ScanCreate, current_user: base.User = Depends(security.get_current_active_user), db: Session = Depends(get_db)):
     # Validate the lab exists and is running
     lab = db.query(base.Lab).filter(base.Lab.id == scan_data.lab_id).first()
     if not lab:
@@ -29,7 +34,7 @@ def run_attack_simulation(
     if lab.status != "running":
         raise HTTPException(
             status_code=400,
-            detail=f"Lab must be running to perform attacks. Current status: {lab.status}"
+            detail=f"Lab must be running to perform attacks. Current status: {lab.status}",
         )
 
     # Validate attack type
@@ -40,59 +45,54 @@ def run_attack_simulation(
         "idor",
         "auth_bypass",
         "dir_traversal",
-        "file_upload_abuse"
+        "file_upload_abuse",
     ]
 
     if scan_data.attack_type not in valid_attack_types:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid attack type. Valid types: {', '.join(valid_attack_types)}"
+            detail=f"Invalid attack type. Valid types: {', '.join(valid_attack_types)}",
         )
 
     # Create scan record
-    scan = scan_crud.create_scan(db, scan_data, current_user.id)
+    scan = base.Scan(
+            user_id=current_user.id,
+            lab_id=scan.lab_id,
+            attack_type=scan.attack_type,
+            status="pending"
+        )
+    db.add(scan)
+    db.commit()
+    db.refresh(scan)
 
     try:
         # Run the attack simulation
-        results = attack_engine.run_attack_simulation(
-            scan_data.attack_type,
-            scan_data.lab_id,
-            current_user.id
+        attack_engine.run_attack_simulation(
+            scan_data.attack_type, scan_data.lab_id, scan.id, db
         )
 
         # Update scan status to completed
-        scan_crud.update_scan_status(db, scan.id, "completed")
+        update_scan_status(db, scan.id, "completed")
 
         # Return the scan record with updated status
-        updated_scan = scan_crud.get_scan(db, scan.id)
+        updated_scan = db.query(base.Scan).filter(base.Scan.id == scan.id).first()
         return updated_scan
 
-    except Exception as e:
+    except Exception:
         # Update scan status to failed
-        scan_crud.update_scan_status(db, scan.id, "failed")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Attack simulation failed: {str(e)}"
-        )
-
+        update_scan_status(db, scan.id, "failed")
+        logger.exception(f"Attack simulation failed for scan {scan.id}")
+        raise HTTPException(status_code=500, detail="Attack simulation failed")
 
 @router.get("/scans/{scan_id}/results", response_model=Dict[str, Any])
-def get_attack_results(
-    scan_id: int,
-    current_user: base.User = Depends(security.get_current_active_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Get detailed results of an attack simulation
-    """
+def get_attack_results(scan_id: int, current_user: base.User = Depends(security.get_current_active_user), db: Session = Depends(get_db)):
     scan = db.query(base.Scan).filter(base.Scan.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     if scan.user_id != current_user.id:
         raise HTTPException(
-            status_code=403,
-            detail="Not authorized to view these scan results"
+            status_code=403, detail="Not authorized to view these scan results"
         )
 
     # Get all logs for this scan
@@ -103,7 +103,9 @@ def get_attack_results(
 
     # Create payload usage summary
     payloads_used = list(set(log.payload for log in logs if log.payload))
-    successful_payloads = list(set(log.payload for log in logs if log.result == "vulnerability_detected"))
+    successful_payloads = list(
+        set(log.payload for log in logs if log.result == "vulnerability_detected")
+    )
 
     return {
         "scan_id": scan_id,
@@ -125,7 +127,8 @@ def get_attack_results(
                 "response": log.response,
                 "payload": log.payload,
                 "result": log.result,
-                "severity": log.severity
-            } for log in logs
-        ]
+                "severity": log.severity,
+            }
+            for log in logs
+        ],
     }

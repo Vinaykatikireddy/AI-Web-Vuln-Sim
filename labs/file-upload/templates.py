@@ -43,7 +43,6 @@ HOME_PAGE = """
 </html>
 """
 
-
 UPLOAD_PAGE = """
 <!DOCTYPE html>
 <html>
@@ -93,7 +92,6 @@ UPLOAD_PAGE = """
 </body>
 </html>
 """
-
 
 SUCCESS_PAGE = """
 <!DOCTYPE html>

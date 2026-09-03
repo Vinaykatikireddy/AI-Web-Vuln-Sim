@@ -16,23 +16,46 @@ A full-stack educational cyber range that allows users to safely launch simulate
 
 ```
 project/
-├── frontend/        # React/Vite/TypeScript frontend
-├── backend/         # FastAPI Python backend
-├── docker/          # Docker Compose configurations
-├── labs/            # Vulnerable application containers
-├── ai/              # AI analysis and LLM integration
-├── reports/         # Report generation and templates
-├── payloads/        # Attack payload library
-├── docs/            # Documentation
-├── tests/           # Test suites
-└── scripts/         # Utility scripts
+├── backend/           # FastAPI Python backend (app/, templates/, pyproject.toml)
+│   └── app/
+│       ├── api/       # Routers: attack, auth, dashboard, lab, payload, report
+│       ├── models/    # SQLAlchemy models
+│       ├── schemas/   # Pydantic schemas
+│       ├── core/      # Security, rate limiting
+│       ├── services/  # Attack engine, lab manager, AI service, report generator
+│       └── templates/reports/  # Jinja2 report templates
+├── frontend/          # React/Vite/TypeScript frontend
+├── labs/              # Vulnerable application containers (blog, ecommerce, file-upload, login)
+├── docs/              # Documentation
+├── scripts/           # DB seeding utilities
+├── docker-compose.yml
+├── Dockerfile         # Backend image (Hugging Face Spaces compatible)
+└── supervisord.conf
 ```
 
 ## Getting Started
 
-1. Install Docker
-2. Run `docker-compose up` in the docker directory
-3. Navigate to http://localhost:3000
+### Backend
+
+1. Install Docker and Python 3.10+
+2. Set environment variables:
+   ```bash
+   export SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')
+   export DATABASE_URL=sqlite:///./app.db  # or a PostgreSQL URL
+   ```
+3. Run the backend:
+   ```bash
+   cd backend && pip install -r requirements.txt && uvicorn app.main:app --port 7860
+   ```
+   Or via Docker: `docker compose up --build` (backend on port 7860)
+
+### Frontend
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+The frontend is also deployable to Vercel (`vercel.json` routes `/api/*` to the backend).
 
 ## Security Note
 

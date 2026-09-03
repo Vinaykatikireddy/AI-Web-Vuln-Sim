@@ -2,7 +2,7 @@
 name = "attack-simulation-backend"
 version = "0.1.0"
 description = "Backend for AI-powered web application attack simulation platform"
-authors = ["Vinay katikireddy vinaykatikireddy@hotmail.com>"]
+authors = ["Vinay Katikireddy <vinaykatikireddy@hotmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -12,10 +12,19 @@ sqlalchemy = "^2.0.24"
 psycopg2-binary = "^2.9.9"
 python-dotenv = "^1.0.0"
 python-jose = "^3.3.0"
-bcrypt = "^4.1.3"
+bcrypt = "<5.0.0"
 pydantic-settings = "^2.2.1"
+pydantic = { version = "*", extras = ["email"] }
+passlib = { version = "1.7.4", extras = ["bcrypt"] }
+aiohttp = "^3.8.1"
+docker = "^5.0.0"
+python-multipart = "^0.0.5"
+jinja2 = "^3.0.0"
+weasyprint = "^53.3.0"
+beautifulsoup4 = "^4.12.0"
+slowapi = "^0.1.9"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
 pytest-asyncio = "^0.21.1"
 httpx = "^0.27.0"

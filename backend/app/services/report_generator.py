@@ -1,12 +1,12 @@
 import os
 import json
+import asyncio
 from typing import Dict, Any, List
 from datetime import datetime
-from app.services.ai_service import analyze_attacks_with_ai
+from services.ai_service import analyze_attacks_with_ai
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-from cruds import scan as scan_crud
-from cruds import report as report_crud
+from models import base
 from database import get_db
 from services.logging_service import LoggingService
 from services.attack_engine import AttackEngine
@@ -17,202 +17,20 @@ from sqlalchemy.orm import Session
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ReportGenerator:
     def __init__(self):
         self.logging_service = LoggingService()
         self.attack_engine = AttackEngine()
 
         # Set up Jinja2 templates
-        template_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'templates', 'reports')
+        template_dir = os.path.join(
+            os.path.dirname(__file__), "..", "..", "templates", "reports"
+        )
         self.env = Environment(loader=FileSystemLoader(template_dir))
 
         # Ensure template directory exists
         os.makedirs(template_dir, exist_ok=True)
-
-        # Create templates if they don't exist
-        self._create_default_templates()
-
-    def _create_default_templates(self):
-        """
-        Create default report templates if they don't exist
-        """
-        templates = {
-            "html": """<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Security Assessment Report</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
-.container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-h1 { color: #333; text-align: center; margin-bottom: 30px; }
-h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 30px; }
-h3 { color: #444; margin-top: 20px; }
-p { color: #666; line-height: 1.6; }
-.summary { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0; }
-.finding { background-color: #fafafa; border-left: 4px solid #4CAF50; padding: 15px; margin: 15px 0; border-radius: 0 5px 5px 0; }
-.finding h4 { color: #2c3e50; margin-top: 0; }
-.risk-critical { border-left-color: #e74c3c; }
-.risk-high { border-left-color: #e67e22; }
-.risk-medium { border-left-color: #f39c12; }
-.risk-low { border-left-color: #2ecc71; }
-.code { background-color: #f1f1f1; padding: 10px; border-radius: 5px; overflow-x: auto; font-family: monospace; }
-.table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-.table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-.table th { background-color: #f2f2f2; }
-.table tr:nth-child(even) { background-color: #f2f2f2; }
-.severity-critical { color: #e74c3c; font-weight: bold; }
-.severity-high { color: #e67e22; font-weight: bold; }
-.severity-medium { color: #f39c12; font-weight: bold; }
-.severity-low { color: #2ecc71; font-weight: bold; }
-.footer { text-align: center; margin-top: 50px; color: #777; font-size: 0.9em; }
-.vulnerability-icon { display: inline-block; width: 20px; height: 20px; background-color: #e74c3c; color: white; text-align: center; line-height: 20px; border-radius: 50%; margin-right: 5px; font-size: 0.8em; }
-</style>
-</head>
-<body>
-<div class="container">
-<h1>Security Assessment Report</h1>
-
-<div class="summary">
-<h2>Executive Summary</h2>
-<p><strong>Assessment of:</strong> {{ report.lab_name }}</p>
-<p><strong>Generated on:</strong> {{ report.generated_at }}</p>
-<p><strong>Total attacks performed:</strong> {{ report.total_attempts }}</p>
-<p><strong>Vulnerabilities detected:</strong> {{ report.vulnerabilities_detected }}</p>
-<p><strong>Overall risk level:</strong> <span class="severity-{{ report.overall_risk }}">{{ report.overall_risk|capitalize }}</span></p>
-</div>
-
-<h2>Findings</h2>
-{% for finding in report.findings %}
-<div class="finding risk-{{ finding.risk_level }}">
-<h4><span class="vulnerability-icon">{{ finding.vulnerability_type[0] }}</span> {{ finding.vulnerability_type }}</h4>
-<p><strong>Risk Level:</strong> <span class="severity-{{ finding.risk_level }}">{{ finding.risk_level|capitalize }}</span></p>
-<p><strong>Technical Explanation:</strong><br>{{ finding.technical_explanation }}</p>
-<p><strong>Example Exploitation:</strong><br>{{ finding.example_exploitation }}</p>
-<p><strong>Prevention:</strong><br>{{ finding.prevention }}</p>
-<p><strong>Secure Code Recommendation:</strong></p>
-<pre class="code">{{ finding.secure_code_recommendation }}</pre>
-
-<h5>Evidence:</h5>
-{% for evidence in finding.evidence %}
-<div style="margin: 10px 0;">
-<strong>Payload:</strong><br>{{ evidence.payload|eol2br }}
-<br><strong>Request:</strong><br>{{ evidence.request|eol2br }}
-<br><strong>Response:</strong><br>{{ evidence.response|eol2br }}</div>
-{% endfor %}
-</div>
-{% endfor %}
-
-<h2>Attack Evidence</h2>
-<table class="table">
-<thead>
-<tr>
-<th>Timestamp</th>
-<th>Payload</th>
-<th>Result</th>
-<th>Severity</th>
-</tr>
-</thead>
-<tbody>
-{% for log in report.logs %}
-<tr>
-<td>{{ log.timestamp }}</td>
-<td>{{ log.payload|eol2br }}</td>
-<td>{{ log.result|capitalize }}</td>
-<td><span class="severity-{{ log.severity }}">{{ log.severity|capitalize }}</span></td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-
-<h2>AI Recommendations</h2>
-<p>{{ report.ai_recommendations }}</p>
-
-{% if report.ongoing_recommendations %}
-<h2>Ongoing Recommendations</h2>
-<ul>
-{% for rec in report.ongoing_recommendations %}
-<li>{{ rec }}</li>
-{% endfor %}
-</ul>
-{% endif %}
-
-<div class="footer">
-<p>Generated by AI-Powered Web Application Attack Simulation Platform</p>
-<p>© {{ report.year }} • For Educational Use Only</p>
-</div>
-</div>
-</body>
-</html>""",
-
-            "markdown": """# Security Assessment Report
-
-## Executive Summary
-- **Assessment of:** {{ report.lab_name }}
-- **Generated on:** {{ report.generated_at }}
-- **Total attacks performed:** {{ report.total_attempts }}
-- **Vulnerabilities detected:** {{ report.vulnerabilities_detected }}
-- **Overall risk level:** {{ report.overall_risk|capitalize }}
-
-## Findings
-
-{% for finding in report.findings %}
-### {{ finding.vulnerability_type }}
-
-**Risk Level:** {{ finding.risk_level|capitalize }}
-
-**Technical Explanation:**
-{{ finding.technical_explanation }}
-
-**Example Exploitation:**
-{{ finding.example_exploitation }}
-
-**Prevention:**
-{{ finding.prevention }}
-
-**Secure Code Recommendation:**
-```
-{{ finding.secure_code_recommendation }}
-```
-
-**Evidence:**
-{% for evidence in finding.evidence %}
-- **Payload:** {{ evidence.payload }}
-- **Request:** {{ evidence.request }}
-- **Response:** {{ evidence.response }}
-
-{% endfor %}
-{% endfor %}
-
-## Attack Evidence
-| Timestamp | Payload | Result | Severity |
-|-----------|---------|--------|----------|
-{% for log in report.logs %}
-| {{ log.timestamp }} | {{ log.payload }} | {{ log.result|capitalize }} | {{ log.severity|capitalize }} |
-{% endfor %}
-
-## AI Recommendations
-{{ report.ai_recommendations }}
-
-{% if report.ongoing_recommendations %}
-## Ongoing Recommendations
-{% for rec in report.ongoing_recommendations %}
-- {{ rec }}
-{% endfor %}
-{% endif %}
-
----
-Generated by AI-Powered Web Application Attack Simulation Platform
-© {{ report.year }} • For Educational Use Only"""
-        }
-
-        for template_name, template_content in templates.items():
-            template_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'templates', 'reports', f"{template_name}.html")
-            if not os.path.exists(template_path):
-                with open(template_path, 'w') as f:
-                    f.write(template_content)
-                logger.info(f"Created default {template_name} template at {template_path}")
 
     def generate_report(self, scan_id: int, report_format: str = "html", db: Session = None) -> Dict[str, Any]:
         """
@@ -223,7 +41,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
 
         try:
             # Get scan details
-            scan = scan_crud.get_scan(db, scan_id)
+            scan = db.query(base.Scan).filter(base.Scan.id == scan_id).first()
             if not scan:
                 raise Exception(f"Scan with ID {scan_id} not found")
 
@@ -236,7 +54,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             logs = self.logging_service.get_logs_by_scan(scan_id, db)
 
             # Extract vulnerability findings
-            vulnerability_logs = [log for log in logs if log.result == "vulnerability_detected"]
+            vulnerability_logs = [
+                log for log in logs if log.result == "vulnerability_detected"
+            ]
             total_attempts = len(logs)
             vulnerabilities_detected = len(vulnerability_logs)
 
@@ -247,7 +67,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 "idor": [],
                 "auth_bypass": [],
                 "dir_traversal": [],
-                "file_upload_abuse": []
+                "file_upload_abuse": [],
             }
 
             for log in vulnerability_logs:
@@ -258,17 +78,36 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 else:
                     # Use a general category for unknown types
                     category = "unknown"
-                    if "sql" in log.payload.lower() or "union" in log.payload.lower() or "1=1" in log.payload.lower():
+                    if (
+                        "sql" in log.payload.lower()
+                        or "union" in log.payload.lower()
+                        or "1=1" in log.payload.lower()
+                    ):
                         category = "sql_injection"
-                    elif "script" in log.payload.lower() or "onerror" in log.payload.lower() or "onload" in log.payload.lower():
+                    elif (
+                        "script" in log.payload.lower()
+                        or "onerror" in log.payload.lower()
+                        or "onload" in log.payload.lower()
+                    ):
                         category = "xss"
-                    elif "id" in log.payload.lower() or "user_id" in log.payload.lower() or "." in log.payload.lower():
+                    elif (
+                        "id" in log.payload.lower()
+                        or "user_id" in log.payload.lower()
+                        or "." in log.payload.lower()
+                    ):
                         category = "idor"
                     elif "admin" in log.payload.lower() or "" in log.payload.lower():
                         category = "auth_bypass"
-                    elif "../" in log.payload.lower() or "etc/passwd" in log.payload.lower():
+                    elif (
+                        "../" in log.payload.lower()
+                        or "etc/passwd" in log.payload.lower()
+                    ):
                         category = "dir_traversal"
-                    elif ".php" in log.payload.lower() or ".jsp" in log.payload.lower() or ".aspx" in log.payload.lower():
+                    elif (
+                        ".php" in log.payload.lower()
+                        or ".jsp" in log.payload.lower()
+                        or ".aspx" in log.payload.lower()
+                    ):
                         category = "file_upload_abuse"
                     else:
                         category = "unknown"
@@ -278,43 +117,56 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             findings = []
             for attack_type, logs in vulnerability_types.items():
                 if logs:
-                    # Get the first log as representative
-                    representative_log = logs[0]
-
                     # Extract evidence from logs
                     evidence = []
                     for log in logs:
                         evidence_item = {
                             "payload": log.payload,
                             "request": log.request,
-                            "response": log.response
+                            "response": log.response,
                         }
                         evidence.append(evidence_item)
 
                     # Generate recommendations based on attack type and evidence
-                    recommendation = self._generate_recommendations(attack_type, evidence)
+                    recommendation = asyncio.run(
+                        self._generate_recommendations(attack_type, evidence)
+                    )
 
                     # Determine risk level
                     risk_level = self._determine_risk_level(attack_type)
 
                     # Generate detailed analysis
-                    analysis = self._generate_analysis(attack_type, evidence)
+                    analysis = asyncio.run(
+                        self._generate_analysis(attack_type, evidence)
+                    )
 
-                    findings.append({
-                        "vulnerability_type": self._format_vulnerability_type(attack_type),
-                        "risk_level": risk_level,
-                        "technical_explanation": analysis.get("technical_explanation", ""),
-                        "example_exploitation": analysis.get("example_exploitation", ""),
-                        "prevention": analysis.get("prevention", ""),
-                        "secure_code_recommendation": recommendation.get("secure_code_recommendation", ""),
-                        "evidence": evidence
-                    })
+                    findings.append(
+                        {
+                            "vulnerability_type": self._format_vulnerability_type(
+                                attack_type
+                            ),
+                            "risk_level": risk_level,
+                            "technical_explanation": analysis.get(
+                                "technical_explanation", ""
+                            ),
+                            "example_exploitation": analysis.get(
+                                "example_exploitation", ""
+                            ),
+                            "prevention": analysis.get("prevention", ""),
+                            "secure_code_recommendation": recommendation.get(
+                                "secure_code_recommendation", ""
+                            ),
+                            "evidence": evidence,
+                        }
+                    )
 
             # Calculate overall risk level
             overall_risk = self._calculate_overall_risk(findings)
 
             # Generate AI recommendations
-            ai_recommendations = self._generate_ai_recommendations(scan.attack_type, findings)
+            ai_recommendations = self._generate_ai_recommendations(
+                scan.attack_type, findings
+            )
             ongoing_recommendations = self._generate_ongoing_recommendations()
 
             # Prepare report data
@@ -328,14 +180,17 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 "findings": findings,
                 "logs": [
                     {
-                        "timestamp": log.timestamp.strftime("%B %d, %Y at %H:%M:%S") if log.timestamp else "",
+                        "timestamp": log.timestamp.strftime("%B %d, %Y at %H:%M:%S")
+                        if log.timestamp
+                        else "",
                         "payload": log.payload,
                         "result": log.result,
-                        "severity": log.severity
-                    } for log in logs
+                        "severity": log.severity,
+                    }
+                    for log in logs
                 ],
                 "ai_recommendations": ai_recommendations,
-                "ongoing_recommendations": ongoing_recommendations
+                "ongoing_recommendations": ongoing_recommendations,
             }
 
             # Generate report content based on format
@@ -345,13 +200,21 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             report_data_db = {
                 "scan_id": scan_id,
                 "user_id": scan.user_id,
-                "content": json.dumps(report_data), # Store raw data for future use
+                "content": json.dumps(report_data),  # Store raw data for future use
                 "format": report_format,
-                "status": "generated"
+                "status": "generated",
             }
 
-            report = report_crud.create_report(db, report_data_db)
+            report = base.Report(
+                scan_id=report_data_db["scan_id"],
+                user_id=report_data_db["user_id"],
+                content=report_data_db["content"],
+                format=report_data_db["format"],
+                status=report_data_db["status"]
+            )
+            db.add(report)
             db.commit()
+            db.refresh(report)
 
             return {
                 "report_id": report.id,
@@ -359,7 +222,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 "format": report_format,
                 "content": report_content,
                 "generated_at": datetime.now().strftime("%B %d, %Y at %H:%M:%S"),
-                "status": "generated"
+                "status": "generated",
             }
 
         except Exception as e:
@@ -367,9 +230,6 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             raise
 
     def _generate_report_content(self, report_data: Dict[str, Any], report_format: str) -> str:
-        """
-        Generate report content in the specified format
-        """
         try:
             template_name = f"{report_format}.html"
             template = self.env.get_template(template_name)
@@ -379,7 +239,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             def eol2br(value):
                 if not value:
                     return ""
-                return value.replace('\n', '<br>')
+                return value.replace("\n", "<br>")
 
             # Render the template
             html_content = template.render(report=report_data)
@@ -398,7 +258,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 return pdf_content
 
         except Exception as e:
-            logger.error(f"Error generating report content for format {report_format}: {str(e)}")
+            logger.error(
+                f"Error generating report content for format {report_format}: {str(e)}"
+            )
             # Return fallback content
             return f"Error generating {report_format} report: {str(e)}"
 
@@ -412,27 +274,44 @@ Generated by AI-Powered Web Application Attack Simulation Platform
         payload_lower = payload.lower()
 
         # SQL Injection patterns
-        if any(pattern in payload_lower for pattern in ["'", "' or 1=1", "' or 'a'='a", "union select"]):
+        if any(
+            pattern in payload_lower
+            for pattern in ["'", "' or 1=1", "' or 'a'='a", "union select"]
+        ):
             return "sql_injection"
 
         # XSS patterns
-        elif any(pattern in payload_lower for pattern in ["<script>", "onerror=", "onload=", "javascript:"]):
+        elif any(
+            pattern in payload_lower
+            for pattern in ["<script>", "onerror=", "onload=", "javascript:"]
+        ):
             return "xss"
 
         # IDOR patterns
-        elif any(pattern in payload_lower for pattern in ["id=", "user_id=", "user=", "admin=", "1", "2", "100"]):
+        elif any(
+            pattern in payload_lower
+            for pattern in ["id=", "user_id=", "user=", "admin=", "1", "2", "100"]
+        ):
             return "idor"
 
         # Authentication bypass patterns
-        elif any(pattern in payload_lower for pattern in ["admin'--", "' or 1=1#", "root'--"]):
+        elif any(
+            pattern in payload_lower for pattern in ["admin'--", "' or 1=1#", "root'--"]
+        ):
             return "auth_bypass"
 
         # Directory traversal patterns
-        elif any(pattern in payload_lower for pattern in ["../../../../", "..%2f", "../", "/etc/passwd"]):
+        elif any(
+            pattern in payload_lower
+            for pattern in ["../../../../", "..%2f", "../", "/etc/passwd"]
+        ):
             return "dir_traversal"
 
         # File upload patterns
-        elif any(pattern in payload_lower for pattern in [".php", ".jsp", ".aspx", ".shell.", "\".jpg"]):
+        elif any(
+            pattern in payload_lower
+            for pattern in [".php", ".jsp", ".aspx", ".shell.", '".jpg']
+        ):
             return "file_upload_abuse"
 
         return "unknown"
@@ -448,9 +327,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             "auth_bypass": "Authentication Bypass",
             "dir_traversal": "Directory Traversal",
             "file_upload_abuse": "File Upload Abuse",
-            "unknown": "Unknown Vulnerability"
+            "unknown": "Unknown Vulnerability",
         }
-        return type_map.get(attack_type, attack_type.replace('_', ' ').title())
+        return type_map.get(attack_type, attack_type.replace("_", " ").title())
 
     def _determine_risk_level(self, attack_type: str) -> str:
         """
@@ -463,7 +342,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             "file_upload_abuse": "critical",
             "idor": "high",
             "xss": "medium",
-            "unknown": "low"
+            "unknown": "low",
         }
         return risk_map.get(attack_type, "low")
 
@@ -492,7 +371,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
         else:
             return "low"
 
-    async def _generate_analysis(self, attack_type: str, evidence: List[Dict]) -> Dict[str, str]:
+    async def _generate_analysis(
+        self, attack_type: str, evidence: List[Dict]
+    ) -> Dict[str, str]:
         """
         Generate technical analysis based on attack type and evidence using AI
         """
@@ -503,14 +384,21 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             "request": evidence[0]["request"] if evidence else "",
             "response": evidence[0]["response"] if evidence else "",
             "result": "vulnerability_detected",
-            "severity": "critical" if attack_type in ["sql_injection", "auth_bypass", "dir_traversal", "file_upload_abuse"] else "high" if attack_type == "idor" else "medium" if attack_type == "xss" else "low"
+            "severity": "critical"
+            if attack_type
+            in ["sql_injection", "auth_bypass", "dir_traversal", "file_upload_abuse"]
+            else "high"
+            if attack_type == "idor"
+            else "medium"
+            if attack_type == "xss"
+            else "low",
         }
 
         # Use AI service to analyze (this will handle all the analysis in one go)
         # We need to provide the scan details context for the AI
         scan_details = {
             "lab_name": "N/A",
-            "attack_type": self._format_vulnerability_type(attack_type)
+            "attack_type": self._format_vulnerability_type(attack_type),
         }
 
         result = await analyze_attacks_with_ai([attack_log], scan_details)
@@ -520,7 +408,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             return {
                 "technical_explanation": analysis.get("technical_explanation", ""),
                 "example_exploitation": analysis.get("example_exploitation", ""),
-                "prevention": analysis.get("prevention", "")
+                "prevention": analysis.get("prevention", ""),
             }
         else:
             # Fallback to original analysis if AI fails
@@ -533,7 +421,7 @@ Generated by AI-Powered Web Application Attack Simulation Platform
         analysis = {
             "technical_explanation": "",
             "example_exploitation": "",
-            "prevention": ""
+            "prevention": "",
         }
 
         if attack_type == "sql_injection":
@@ -640,9 +528,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
                 "This is an unknown vulnerability type. The system detected suspicious activity but couldn't classify it. "
                 "Further investigation may be required to determine the exact nature of this issue."
             )
-            analysis["example_exploitation"] = (
-                "The detection system identified potentially malicious behavior but couldn't identify a specific exploitation pattern."
-            )
+            analysis[
+                "example_exploitation"
+            ] = "The detection system identified potentially malicious behavior but couldn't identify a specific exploitation pattern."
             analysis["prevention"] = (
                 "Implement comprehensive input validation and sanitization for all user input. Use a web application firewall. "
                 "Perform regular security audits and penetration testing."
@@ -650,7 +538,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
 
         return analysis
 
-    async def _generate_recommendations(self, attack_type: str, evidence: List[Dict]) -> Dict[str, str]:
+    async def _generate_recommendations(
+        self, attack_type: str, evidence: List[Dict]
+    ) -> Dict[str, str]:
         """
         Generate secure code recommendations using AI analysis
         """
@@ -661,14 +551,21 @@ Generated by AI-Powered Web Application Attack Simulation Platform
             "request": evidence[0]["request"] if evidence else "",
             "response": evidence[0]["response"] if evidence else "",
             "result": "vulnerability_detected",
-            "severity": "critical" if attack_type in ["sql_injection", "auth_bypass", "dir_traversal", "file_upload_abuse"] else "high" if attack_type == "idor" else "medium" if attack_type == "xss" else "low"
+            "severity": "critical"
+            if attack_type
+            in ["sql_injection", "auth_bypass", "dir_traversal", "file_upload_abuse"]
+            else "high"
+            if attack_type == "idor"
+            else "medium"
+            if attack_type == "xss"
+            else "low",
         }
 
         # Use AI service to analyze (this will handle all the analysis in one go)
         # We need to provide the scan details context for the AI
         scan_details = {
             "lab_name": "N/A",
-            "attack_type": self._format_vulnerability_type(attack_type)
+            "attack_type": self._format_vulnerability_type(attack_type),
         }
 
         result = await analyze_attacks_with_ai([attack_log], scan_details)
@@ -676,7 +573,9 @@ Generated by AI-Powered Web Application Attack Simulation Platform
         if result.success and result.analysis:
             # Extract secure code recommendation from AI analysis
             return {
-                "secure_code_recommendation": result.analysis.get("secure_code_recommendation", "")
+                "secure_code_recommendation": result.analysis.get(
+                    "secure_code_recommendation", ""
+                )
             }
         else:
             # Fallback to original recommendations if AI fails
@@ -686,12 +585,12 @@ Generated by AI-Powered Web Application Attack Simulation Platform
         """
         Fallback recommendations implementation for when AI service is unavailable
         """
-        recommendations = {
-            "secure_code_recommendation": ""
-        }
+        recommendations = {"secure_code_recommendation": ""}
 
         if attack_type == "sql_injection":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'"
 
 # DO (Secure)
@@ -712,7 +611,9 @@ conn.close()
 """
 
         elif attack_type == "xss":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 response.write("<div>" + userInput + "</div>")
 
 # DO (Secure)
@@ -731,7 +632,9 @@ def sanitizeInput(input) {
 """
 
         elif attack_type == "idor":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 @app.route('/user/<int:user_id>')
 def get_user(user_id):
     # Directly use user_id from URL parameter
@@ -766,7 +669,9 @@ def get_user_profile(profile_id):
 """
 
         elif attack_type == "auth_bypass":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 @app.route('/login')
 def login():
     username = request.form['username']
@@ -804,7 +709,9 @@ def login():
 """
 
         elif attack_type == "dir_traversal":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 @app.route('/download', methods=['GET'])
 def download_file():
     filename = request.args.get('file', 'default.txt')
@@ -853,7 +760,9 @@ def download_file():
 """
 
         elif attack_type == "file_upload_abuse":
-            recommendations["secure_code_recommendation"] = """  # DON'T (Vulnerable)
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # DON'T (Vulnerable)
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
@@ -911,7 +820,9 @@ def upload_file():
 """
 
         else:
-            recommendations["secure_code_recommendation"] = """  # Implement comprehensive input validation and sanitization
+            recommendations[
+                "secure_code_recommendation"
+            ] = """  # Implement comprehensive input validation and sanitization
 # Use security libraries for common vulnerabilities
 # Implement a web application firewall (WAF)
 # Perform regular security audits and penetration testing
@@ -922,7 +833,9 @@ def upload_file():
 
         return recommendations
 
-    def _generate_ai_recommendations(self, attack_type: str, findings: List[Dict]) -> str:
+    def _generate_ai_recommendations(
+        self, attack_type: str, findings: List[Dict]
+    ) -> str:
         """
         Generate AI-derived recommendations for the overall assessment
         """
@@ -937,23 +850,41 @@ def upload_file():
         recommendations = []
 
         if critical_count > 0:
-            recommendations.append("Critical vulnerabilities detected. These require immediate attention as they could lead to complete system compromise.")
+            recommendations.append(
+                "Critical vulnerabilities detected. These require immediate attention as they could lead to complete system compromise."
+            )
 
         if high_count > 0:
-            recommendations.append(f"{high_count} high-risk vulnerabilities detected. These should be addressed within the next sprint.")
+            recommendations.append(
+                f"{high_count} high-risk vulnerabilities detected. These should be addressed within the next sprint."
+            )
 
         if medium_count > 0:
-            recommendations.append(f"{medium_count} medium-risk vulnerabilities detected. These should be addressed in your next security review.")
+            recommendations.append(
+                f"{medium_count} medium-risk vulnerabilities detected. These should be addressed in your next security review."
+            )
 
         if critical_count == 0 and high_count == 0 and medium_count == 0:
-            recommendations.append("No critical, high, or medium vulnerabilities detected. Your application has good security posture.")
+            recommendations.append(
+                "No critical, high, or medium vulnerabilities detected. Your application has good security posture."
+            )
 
         # Add general recommendations
-        recommendations.append("Consider implementing automated security testing in your CI/CD pipeline.")
-        recommendations.append("Regularly update your third-party dependencies to patch known vulnerabilities.")
-        recommendations.append("Provide security training for your development team on common OWASP Top 10 vulnerabilities.")
-        recommendations.append("Perform periodic penetration testing on your applications.")
-        recommendations.append("Implement a vulnerability management program to track and remediate security issues.")
+        recommendations.append(
+            "Consider implementing automated security testing in your CI/CD pipeline."
+        )
+        recommendations.append(
+            "Regularly update your third-party dependencies to patch known vulnerabilities."
+        )
+        recommendations.append(
+            "Provide security training for your development team on common OWASP Top 10 vulnerabilities."
+        )
+        recommendations.append(
+            "Perform periodic penetration testing on your applications."
+        )
+        recommendations.append(
+            "Implement a vulnerability management program to track and remediate security issues."
+        )
 
         return "\n\n".join(recommendations)
 
@@ -971,22 +902,31 @@ def upload_file():
             "Implement secure coding standards",
             "Integrate security into your development lifecycle (DevSecOps)",
             "Consider adopting a Web Application Firewall (WAF)",
-            "Regularly review and update your security policies"
+            "Regularly review and update your security policies",
         ]
 
-    def _html_to_markdown(html_content: str) -> str:
+    def _html_to_markdown(self, html_content: str) -> str:
         """
         Convert HTML to Markdown (simplified conversion)
         """
         import re
+
         if not isinstance(html_content, str):
             return ""
         markdown_content = html_content
-        markdown_content = markdown_content.replace("<h1>", "# ").replace("</h1>", "\n\n")
-        markdown_content = markdown_content.replace("<h2>", "## ").replace("</h2>", "\n\n")
-        markdown_content = markdown_content.replace("<h3>", "### ").replace("</h3>", "\n\n")
-        markdown_content = markdown_content.replace("<strong>", "**").replace("</strong>", "**")
+        markdown_content = markdown_content.replace("<h1>", "# ").replace(
+            "</h1>", "\n\n"
+        )
+        markdown_content = markdown_content.replace("<h2>", "## ").replace(
+            "</h2>", "\n\n"
+        )
+        markdown_content = markdown_content.replace("<h3>", "### ").replace(
+            "</h3>", "\n\n"
+        )
+        markdown_content = markdown_content.replace("<strong>", "**").replace(
+            "</strong>", "**"
+        )
         markdown_content = markdown_content.replace("<em>", "_").replace("</em>", "_")
-        markdown_content = re.sub(r'<br\s*/?>', '\n', markdown_content, flags=re.I)
-        markdown_content = re.sub(r'\n\s*\n+', '\n\n', markdown_content)
+        markdown_content = re.sub(r"<br\s*/?>", "\n", markdown_content, flags=re.I)
+        markdown_content = re.sub(r"\n\s*\n+", "\n\n", markdown_content)
         return markdown_content

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 
 class ReportBase(BaseModel):
@@ -8,14 +9,10 @@ class ReportBase(BaseModel):
     content: Optional[str] = None
 
 
-class ReportCreate(ReportBase):
-    pass
-
-
 class ReportOut(ReportBase):
     id: int
     user_id: int
-    generated_at: str
+    generated_at: datetime
     status: str
 
     class Config:

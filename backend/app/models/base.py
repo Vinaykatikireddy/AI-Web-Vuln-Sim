@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Bool
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
-#from app.database import Base
 
 # Initialize the Base class
 Base = declarative_base()
@@ -31,6 +30,7 @@ class Lab(Base):
     status = Column(String(20), default="stopped")  # stopped, running, starting, stopping, deleted
     docker_image = Column(String(255), nullable=False)
     port = Column(Integer)
+    external_url = Column(String(255))  # For external labs, if any
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -99,7 +99,3 @@ class Payload(Base):
     description = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_active = Column(Boolean, default=True)
-
-    # This will be used to store attack payloads for various vulnerability types
-    # as specified in section 7 of the requirements
-

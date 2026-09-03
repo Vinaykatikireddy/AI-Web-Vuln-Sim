@@ -41,7 +41,7 @@ const LabDetails: React.FC = () => {
                 }
             })
             // Refresh lab details
-            const response = await axios.get(`http://localhost:8000/api/labs/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/labs/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
@@ -63,7 +63,7 @@ const LabDetails: React.FC = () => {
                 }
             })
             // Refresh lab details
-            const response = await axios.get(`http://localhost:8000/api/labs/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/labs/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }

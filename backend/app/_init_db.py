@@ -1,23 +1,12 @@
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models.base import Lab
-from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from models import base
+from database import get_db
+from services.lab_manager import LabManager
+from fastapi import Depends
 
-load_dotenv()
-
-# Create database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-# Create engine and session
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def init_labs():
-    db = SessionLocal()
-
-    # Define the available labs
-    labs_data = [
+lab_manager = LabManager()
+def init_db(db: Session = Depends(get_db)):
+    available_labs = [
         {
             "id": 1,
             "name": "Simple Login",
@@ -25,7 +14,7 @@ def init_labs():
             "docker_image": "attack-simulation-login",
             "port": 5001,
             "external_url": "https://login-system-6tla.onrender.com/",
-            "status": "stopped"
+            "vulnerabilities": ["SQL Injection", "Weak Authentication"],
         },
         {
             "id": 2,
@@ -34,7 +23,7 @@ def init_labs():
             "docker_image": "attack-simulation-blog",
             "port": 5002,
             "external_url": "https://xss-blog-site.onrender.com/",
-            "status": "stopped"
+            "vulnerabilities": ["Stored XSS", "Reflected XSS"],
         },
         {
             "id": 3,
@@ -43,7 +32,7 @@ def init_labs():
             "docker_image": "attack-simulation-ecommerce",
             "port": 5003,
             "external_url": "https://e-commerce-b6wh.onrender.com/",
-            "status": "stopped"
+            "vulnerabilities": ["IDOR", "Insecure Admin Panel"],
         },
         {
             "id": 4,
@@ -52,24 +41,26 @@ def init_labs():
             "docker_image": "attack-simulation-fileupload",
             "port": 5004,
             "external_url": "https://file-upload-mlnv.onrender.com/",
-            "status": "stopped"
-        }
+            "vulnerabilities": ["Unsafe File Upload", "Path Traversal"],
+        },
     ]
 
-    # Add labs to database
-    for lab_data in labs_data:
-        lab = db.query(Lab).filter(Lab.id == lab_data["id"]).first()
-        if not lab:
-            lab = Lab(**lab_data)
-            db.add(lab)
-        else:
-            # Update existing lab
-            for key, value in lab_data.items():
-                setattr(lab, key, value)
+    # Create lab records in database
+    for lab_data in available_labs:
+        db_lab = db.query(base.Lab).filter(base.Lab.id == lab_data['id']).first()
+        if not db_lab:
+            db_lab = base.Lab(
+                id=lab_data['id'],
+                name=lab_data['name'],
+                description=lab_data['description'],
+                status="stopped",
+                docker_image=lab_data['docker_image'],
+                port=lab_data['port'],
+                external_url=lab_data.get('external_url')
+            )
+            db.add(db_lab)
+    print("Database initialized with available labs.")
 
     db.commit()
-    db.close()
-    print("Labs initialized successfully!")
-
-if __name__ == "__main__":
-    init_labs()
+db = next(get_db())
+init_db(db)

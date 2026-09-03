@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 from typing import Optional
 
@@ -15,9 +17,9 @@ class ScanOut(ScanBase):
     id: int
     user_id: int
     status: str
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    created_at: str
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime
 
     class Config:
         from_attributes = True
