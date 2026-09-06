@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import Base
+from models import base
 from database import get_db
 from fastapi import Depends
 
@@ -145,13 +145,13 @@ def init_payloads(db: Session = Depends(get_db)):
 
     # Add payloads to database
     for payload_data in all_payloads:
-        db_payload = db.query(Base.Payload).filter(
-            Base.Payload.category == payload_data["category"],
-            Base.Payload.payload == payload_data["payload"]
+        db_payload = db.query(base.Payload).filter(
+            base.Payload.category == payload_data["category"],
+            base.Payload.payload == payload_data["payload"]
         ).first()
 
         if not db_payload:
-            db_payload = Base.Payload(
+            db_payload = base.Payload(
                 category=payload_data["category"],
                 payload=payload_data["payload"],
                 description=payload_data["description"],
