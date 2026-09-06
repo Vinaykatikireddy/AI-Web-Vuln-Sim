@@ -4,7 +4,7 @@ import axios from 'axios'
 import { errorHandler } from '../utils/errorHandler'
 
 const ScanResults: React.FC = () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const [scan, setScan] = useState<any>(null)

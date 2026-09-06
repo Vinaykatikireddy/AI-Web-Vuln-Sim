@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { errorHandler } from '../utils/errorHandler';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
 
 const Attacks: React.FC = () => {
   const { id } = useParams<{ id: string }>();

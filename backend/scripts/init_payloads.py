@@ -1,22 +1,9 @@
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models.base import Payload
-from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from models import Base
+from database import get_db
+from fastapi import Depends
 
-load_dotenv()
-
-# Create database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-# Create engine and session
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def init_payloads():
-    db = SessionLocal()
-
-    # SQL Injection payloads
+def init_payloads(db: Session = Depends(get_db)):
     sqli_payloads = [
         {"category": "sqli", "payload": "'", "description": "Single quote to break SQL query"},
         {"category": "sqli", "payload": "' OR 1=1--", "description": "Common SQL injection bypass"},
@@ -158,27 +145,23 @@ def init_payloads():
 
     # Add payloads to database
     for payload_data in all_payloads:
-        db_payload = db.query(Payload).filter(
-            Payload.category == payload_data["category"],
-            Payload.payload == payload_data["payload"]
+        db_payload = db.query(Base.Payload).filter(
+            Base.Payload.category == payload_data["category"],
+            Base.Payload.payload == payload_data["payload"]
         ).first()
 
         if not db_payload:
-            db_payload = Payload(
+            db_payload = Base.Payload(
                 category=payload_data["category"],
                 payload=payload_data["payload"],
                 description=payload_data["description"],
                 is_active=True
             )
             db.add(db_payload)
-        else:
-            # Update existing payload if description changed
-            if db_payload.description != payload_data["description"]:
-                db_payload.description = payload_data["description"]
 
     db.commit()
     db.close()
     print("Payloads initialized successfully!")
 
-if __name__ == "__main__":
-    init_payloads()
+db = next(get_db())
+init_payloads(db)

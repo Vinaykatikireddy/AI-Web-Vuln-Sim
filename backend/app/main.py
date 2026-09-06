@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -7,6 +6,8 @@ from api import attack, auth, dashboard, report, payload, lab
 from database import engine
 from models import base
 from core.limiter import limiter
+from scripts.init_db import init_db
+from scripts.init_payloads import init_payloads
 
 # Create database tables
 base.Base.metadata.create_all(bind=engine)
@@ -20,14 +21,10 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Configure CORS - restrict to known frontend origins via CORS_ORIGINS env var
-_cors_origins = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:5173",
-)
+# Configure CORS - restrict to known frontend origins via CORS_ORIGINS 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in _cors_origins.split(",") if o.strip()],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://vinaykatikireddy-portfolio.hf.space/ai-web-vuln-sim"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,4 +52,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+    uvicorn.run(app, host="0.0.0.0", port="8000")

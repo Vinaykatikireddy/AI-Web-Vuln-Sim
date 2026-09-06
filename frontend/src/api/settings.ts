@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
 
 // Update AI settings
 export const updateAISettings = async (aiEndpoint: string, aiApiKey: string) => {

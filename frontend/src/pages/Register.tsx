@@ -6,7 +6,7 @@ import { errorHandler } from '../utils/errorHandler'
 import logoSvg from '../logo.svg';
 
 const Register: React.FC = () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
     const [formData, setFormData] = useState({
         username: '',
         email: '',

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from models import base
 from database import get_db
-from services.lab_manager import LabManager
 from fastapi import Depends
+from services.lab_manager import LabManager
 
 lab_manager = LabManager()
 def init_db(db: Session = Depends(get_db)):
@@ -14,7 +14,6 @@ def init_db(db: Session = Depends(get_db)):
             "docker_image": "attack-simulation-login",
             "port": 5001,
             "external_url": "https://login-system-6tla.onrender.com/",
-            "vulnerabilities": ["SQL Injection", "Weak Authentication"],
         },
         {
             "id": 2,
@@ -23,7 +22,6 @@ def init_db(db: Session = Depends(get_db)):
             "docker_image": "attack-simulation-blog",
             "port": 5002,
             "external_url": "https://xss-blog-site.onrender.com/",
-            "vulnerabilities": ["Stored XSS", "Reflected XSS"],
         },
         {
             "id": 3,
@@ -32,7 +30,6 @@ def init_db(db: Session = Depends(get_db)):
             "docker_image": "attack-simulation-ecommerce",
             "port": 5003,
             "external_url": "https://e-commerce-b6wh.onrender.com/",
-            "vulnerabilities": ["IDOR", "Insecure Admin Panel"],
         },
         {
             "id": 4,
@@ -41,7 +38,6 @@ def init_db(db: Session = Depends(get_db)):
             "docker_image": "attack-simulation-fileupload",
             "port": 5004,
             "external_url": "https://file-upload-mlnv.onrender.com/",
-            "vulnerabilities": ["Unsafe File Upload", "Path Traversal"],
         },
     ]
 
@@ -59,8 +55,9 @@ def init_db(db: Session = Depends(get_db)):
                 external_url=lab_data.get('external_url')
             )
             db.add(db_lab)
-    print("Database initialized with available labs.")
+    print("Labs added to the Database.")
 
     db.commit()
+
 db = next(get_db())
 init_db(db)

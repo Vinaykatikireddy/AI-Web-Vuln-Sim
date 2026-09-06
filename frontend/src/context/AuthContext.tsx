@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedUser = localStorage.getItem('user')
       
       if (storedToken && storedUser) {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+        const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL
         await retry(() => axios.get(`${API_BASE_URL}/auth/verify`, {
           headers: {
             Authorization: `Bearer ${storedToken}`
@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       formDataToSend.append("username", username)
       formDataToSend.append("password", password)
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+      const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL
       const response = await retry(() => axios.post(
         `${API_BASE_URL}/auth/login`,
         formDataToSend,

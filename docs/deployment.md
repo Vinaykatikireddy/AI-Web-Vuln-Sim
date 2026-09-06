@@ -47,7 +47,7 @@ For a production deployment on a single server:
    
    # JWT configuration
    SECRET_KEY=your-production-super-secret-key
-   ALGORITHM=HS256
+   JWT_ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=60
    
    # AI Configuration

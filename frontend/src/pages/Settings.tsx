@@ -5,7 +5,7 @@ import { errorHandler } from '../utils/errorHandler'
 import { updateAISettings, clearAllData } from '../api/settings'
 
 const Settings: React.FC = () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
   const [settings, setSettings] = useState<any>({
     notifications: true,
     email_notifications: true,

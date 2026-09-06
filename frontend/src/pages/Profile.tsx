@@ -6,7 +6,7 @@ import { retry } from '../utils/retry'
 import { cancelRequest } from '../utils/cancelRequest'
 
 const Profile: React.FC = () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
