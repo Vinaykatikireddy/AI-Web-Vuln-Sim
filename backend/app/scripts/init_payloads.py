@@ -127,8 +127,8 @@ def init_payloads(db: Session = Depends(get_db)):
         {"category": "file-upload", "payload": "shell.jsp.jpg", "description": "Double extension JSP file"},
         {"category": "file-upload", "payload": "shell.aspx.jpg", "description": "Double extension ASPX file"},
         {"category": "file-upload", "payload": "shell.php.gif", "description": "GIF extension with PHP code"},
-        {"category": "file-upload", "payload": "shell.php.gif\x00", "description": "Null byte injection for PHP"},
-        {"category": "file-upload", "payload": "shell.php\x00.jpg", "description": "Null byte injection for extension bypass"},
+        {"category": "file-upload", "payload": r"shell.php.gif\x00", "description": "Null byte injection for PHP"},
+        {"category": "file-upload", "payload": r"shell.php\x00.jpg", "description": "Null byte injection for extension bypass"},
         {"category": "file-upload", "payload": "shell.php.", "description": "Trailing dot for bypass"},
         {"category": "file-upload", "payload": "shell.php..", "description": "Trailing dots for bypass"}
     ]
