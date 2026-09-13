@@ -17,7 +17,7 @@ function App() {
   return (
     <BrowserRouter basename="/ai-web-vuln-sim">
       <Routes>
-        <Route path="/ai-web-vuln-sim" element={<Layout /> }>
+        <Route path="/" element={<Layout /> }>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />

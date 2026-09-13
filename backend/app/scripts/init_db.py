@@ -54,6 +54,7 @@ def init_db(db: Session = Depends(get_db)):
                 port=lab_data['port'],
                 external_url=lab_data.get('external_url')
             )
+            print("add db")
             db.add(db_lab)
     print("Labs added to the Database.")
 

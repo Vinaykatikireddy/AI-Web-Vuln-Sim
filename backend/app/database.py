@@ -8,6 +8,8 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("AWVS_DATABASE_URL", "sqlite:///./database.db")
 
+print("using DB: ",DATABASE_URL)
+
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
