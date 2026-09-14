@@ -16,14 +16,14 @@ const Report: React.FC = () => {
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        const reportResponse = await axios.get(`${API_BASE_URL}/api/reports/${id}`, {
+        const reportResponse = await axios.get(`${API_BASE_URL}/reports/${id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('auth')}`
           }
         })
         setReport(reportResponse.data)
 
-        const scanResponse = await axios.get(`${API_BASE_URL}/api/scans/${reportResponse.data.scan_id}`, {
+        const scanResponse = await axios.get(`${API_BASE_URL}/scans/${reportResponse.data.scan_id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('auth')}`
           }
@@ -41,7 +41,7 @@ const Report: React.FC = () => {
 
   const downloadReport = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/reports/${id}?format=${downloadType}`, {
+      const response = await axios.get(`${API_BASE_URL}/reports/${id}?format=${downloadType}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth')}`
         },

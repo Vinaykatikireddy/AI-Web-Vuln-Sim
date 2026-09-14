@@ -12,7 +12,7 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/dashboard`, {
+                const response = await axios.get(`${API_BASE_URL}/dashboard`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     }

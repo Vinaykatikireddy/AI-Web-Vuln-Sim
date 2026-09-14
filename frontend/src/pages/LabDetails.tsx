@@ -16,7 +16,7 @@ const LabDetails: React.FC = () => {
     useEffect(() => {
         const fetchLab = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/labs/${id}`, {
+                const response = await axios.get(`${API_BASE_URL}/labs/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     }
@@ -35,13 +35,13 @@ const LabDetails: React.FC = () => {
     const handleStartLab = async () => {
         setIsStarting(true)
         try {
-            await axios.post(`${API_BASE_URL}/api/labs/start`, { lab_id: parseInt(id!) }, {
+            await axios.post(`${API_BASE_URL}/labs/start`, { lab_id: parseInt(id!) }, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
             })
             // Refresh lab details
-            const response = await axios.get(`${API_BASE_URL}/api/labs/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/labs/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
@@ -57,13 +57,13 @@ const LabDetails: React.FC = () => {
     const handleStopLab = async () => {
         setIsStopping(true)
         try {
-            await axios.post(`${API_BASE_URL}/api/labs/stop`, { lab_id: parseInt(id!) }, {
+            await axios.post(`${API_BASE_URL}/labs/stop`, { lab_id: parseInt(id!) }, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
             })
             // Refresh lab details
-            const response = await axios.get(`${API_BASE_URL}/api/labs/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/labs/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }

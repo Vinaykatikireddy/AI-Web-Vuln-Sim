@@ -16,7 +16,7 @@ const ScanResults: React.FC = () => {
     useEffect(() => {
         const fetchScanData = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/scans/${id}`, {
+                const response = await axios.get(`${API_BASE_URL}/scans/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     }
@@ -24,7 +24,7 @@ const ScanResults: React.FC = () => {
                 setScan(response.data)
 
                 // Fetch logs
-                const logsResponse = await axios.get(`${API_BASE_URL}/api/logs?scan_id=${id}`, {
+                const logsResponse = await axios.get(`${API_BASE_URL}/logs?scan_id=${id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     }
@@ -43,14 +43,14 @@ const ScanResults: React.FC = () => {
     const analyzeScan = async () => {
         setIsAnalyzing(true)
         try {
-            await axios.post(`${API_BASE_URL}/api/ai/analyze`, { scan_id: parseInt(id!) }, {
+            await axios.post(`${API_BASE_URL}/ai/analyze`, { scan_id: parseInt(id!) }, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }
             })
 
             // Refresh scan data to show updated status
-            const response = await axios.get(`${API_BASE_URL}/api/scans/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/scans/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 }

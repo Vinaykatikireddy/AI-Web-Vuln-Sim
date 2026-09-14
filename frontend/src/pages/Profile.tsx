@@ -78,7 +78,7 @@ const Profile: React.FC = () => {
         setIsSaving(true);
         try {
             await axios.post(
-                `${API_BASE_URL}/api/auth/change-password`,
+                `${API_BASE_URL}/auth/change-password`,
                 { current_password: currentPassword, new_password: newPassword },
                 {headers: {'Authorization': `Bearer ${localStorage.getItem('auth')}`}}
             );

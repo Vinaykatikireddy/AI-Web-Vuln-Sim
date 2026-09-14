@@ -14,7 +14,7 @@ const ScanHistory: React.FC = () => {
   useEffect(() => {
     const fetchScans = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/scans/history`);
+        const response = await axios.get(`${API_BASE_URL}/scans/history`);
         setScans(response.data);
       } catch (err) {
         setError(errorHandler(err));

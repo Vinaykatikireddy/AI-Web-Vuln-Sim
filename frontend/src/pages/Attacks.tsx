@@ -15,7 +15,7 @@ const Attacks: React.FC = () => {
   useEffect(() => {
     const fetchAttacks = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/labs/${id}/attacks`);
+        const response = await axios.get(`${API_BASE_URL}/labs/${id}/attacks`);
         setAttacks(response.data);
       } catch (err) {
         setError(errorHandler(err));
