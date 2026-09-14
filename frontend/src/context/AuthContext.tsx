@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import axios, { CancelTokenSource } from 'axios'
+import axios from 'axios'
 import { retry } from '../utils/retry'
 import { cancelRequest } from '../utils/cancelRequest'
 
