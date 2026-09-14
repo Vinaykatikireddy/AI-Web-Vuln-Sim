@@ -9,7 +9,7 @@ The API follows RESTful principles with JSON as the primary data format. All end
 ### Base URL
 
 ```
-https://your-domain.com/api
+https://vinaykatikireddy.is-a.dev/ai-web-vuln-sim/api
 ```
 
 ### Authentication
@@ -45,19 +45,6 @@ Error responses:
   }
 }
 ```
-
-### Status Codes
-
-| Code | Meaning |
-|------|---------|
-| 200 | OK - Success |
-| 201 | Created - Resource created successfully |
-| 400 | Bad Request - Invalid parameters |
-| 401 | Unauthorized - Authentication required |
-| 403 | Forbidden - Authentication successful but insufficient privileges |
-| 404 | Not Found - Resource doesn't exist |
-| 500 | Internal Server Error - Unexpected server error |
-| 503 | Service Unavailable - Server temporarily unable to handle request |
 
 ## Authentication Endpoints
 

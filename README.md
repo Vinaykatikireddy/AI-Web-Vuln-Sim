@@ -1,13 +1,3 @@
----
-title: ai-web-vuln-sim
-emoji: 🐠
-colorFrom: yellow
-colorTo: blue
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # AI-Powered Web Application Attack Simulation Platform
 
 A full-stack educational cyber range that allows users to safely launch simulated attacks against intentionally vulnerable web applications.
@@ -17,20 +7,16 @@ A full-stack educational cyber range that allows users to safely launch simulate
 ```
 project/
 ├── backend/           # FastAPI Python backend (app/, templates/, pyproject.toml)
-│   └── app/
-│       ├── api/       # Routers: attack, auth, dashboard, lab, payload, report
-│       ├── models/    # SQLAlchemy models
-│       ├── schemas/   # Pydantic schemas
-│       ├── core/      # Security, rate limiting
-│       ├── services/  # Attack engine, lab manager, AI service, report generator
-│       └── templates/reports/  # Jinja2 report templates
+│   ├── app/
+│   │   ├── api/       # Routers: attack, auth, dashboard, lab, payload, report
+│   │   ├── models/    # SQLAlchemy models
+│   │   ├── schemas/   # Pydantic schemas
+│   │   ├── core/      # Security, rate limiting
+│   │   ├── scripts/   # DB seeding utilities
+│   │   └── services/  # Attack engine, lab manager, AI service, report generator
+│   └── templates/reports/  # Jinja2 report templates
 ├── frontend/          # React/Vite/TypeScript frontend
-├── labs/              # Vulnerable application containers (blog, ecommerce, file-upload, login)
-├── docs/              # Documentation
-├── scripts/           # DB seeding utilities
-├── docker-compose.yml
-├── Dockerfile         # Backend image (Hugging Face Spaces compatible)
-└── supervisord.conf
+└── labs/              # Vulnerable labs
 ```
 
 ## Getting Started
@@ -45,9 +31,8 @@ project/
    ```
 3. Run the backend:
    ```bash
-   cd backend && pip install -r requirements.txt && uvicorn app.main:app --port 7860
+   cd backend/app && pip install -r ../requirements.txt && uvicorn app.main:app --port 8000
    ```
-   Or via Docker: `docker compose up --build` (backend on port 7860)
 
 ### Frontend
 
@@ -55,8 +40,6 @@ project/
 cd frontend && npm install && npm run dev
 ```
 
-The frontend is also deployable to Vercel (`vercel.json` routes `/api/*` to the backend).
-
 ## Security Note
 
-This platform is designed for educational purposes only. All attacks execute against isolated, intentionally vulnerable environments. Never use this platform to attack third-party systems.
+This platform is designed for educational purposes. All attacks execute against isolated, intentionally vulnerable environments.
