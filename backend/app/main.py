@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from api import attack, auth, dashboard, report, payload, lab
 from core.limiter import limiter
 
-# Initialize database
+# DATABASE INITIALIZATION
 # from database import engine
 # from models import base
 # from scripts.init_db import init_db

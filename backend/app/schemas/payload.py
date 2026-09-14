@@ -11,10 +11,6 @@ class PayloadBase(BaseModel):
     is_active: bool = True
 
 
-class PayloadCreate(PayloadBase):
-    pass
-
-
 class PayloadUpdate(BaseModel):
     category: Optional[str] = None
     payload: Optional[str] = None

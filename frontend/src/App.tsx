@@ -9,7 +9,6 @@ import LabDetails from './pages/LabDetails'
 import ScanResults from './pages/ScanResults'
 import Report from './pages/Report'
 import Profile from './pages/Profile'
-import Settings from './pages/Settings'
 import Attacks from './pages/Attacks'
 import ScanHistory from './pages/ScanHistory'
 
@@ -28,7 +27,6 @@ function App() {
           <Route path="scan/:id" element={<ScanResults />} />
           <Route path="report/:id" element={<Report />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
           <Route path="scans/history" element={<ScanHistory />} />
         </Route>
       </Routes>

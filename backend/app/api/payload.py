@@ -13,7 +13,7 @@ def get_payload(db: Session, payload_id: int):
     return db.query(base.Payload).filter(base.Payload.id == payload_id).first()
 
 
-def create_payload(db: Session, payload: payload_schemas.PayloadCreate):
+def create_payload(db: Session, payload: payload_schemas.PayloadBase):
     db_payload = base.Payload(
         category=payload.category,
         payload=payload.payload,
@@ -66,7 +66,7 @@ def get_payload_info(payload_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/payloads", response_model=payload_schemas.PayloadOut, status_code=status.HTTP_201_CREATED)
-def create_payload_in_db(payload: payload_schemas.PayloadCreate, db: Session = Depends(get_db)):
+def create_payload_in_db(payload: payload_schemas.PayloadBase, db: Session = Depends(get_db)):
     # Validate category
     valid_categories = [
         "sqli", "xss", "idor", "auth-bypass", "dir-traversal", "file-upload"
