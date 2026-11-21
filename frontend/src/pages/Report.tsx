@@ -4,7 +4,7 @@ import axios from 'axios'
 import { errorHandler } from '../utils/errorHandler'
 
 const Report: React.FC = () => {
-    const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
+  const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [report, setReport] = useState<any>(null)
@@ -29,11 +29,11 @@ const Report: React.FC = () => {
           }
         })
         setScan(scanResponse.data)
-       } catch (err: any) {
-         setError(errorHandler(err));
-       } finally {
-         setLoading(false)
-       }
+      } catch (err: any) {
+        setError(errorHandler(err));
+      } finally {
+        setLoading(false)
+      }
     }
 
     fetchReportData()
@@ -55,20 +55,20 @@ const Report: React.FC = () => {
       document.body.appendChild(link)
       link.click()
       link.parentNode!.removeChild(link)
-     } catch (err: any) {
-       setError(errorHandler(err));
-     }
+    } catch (err: any) {
+      setError(errorHandler(err));
+    }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <svg className="animate-spin -ml-1 mr-3 h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <div className="page-loading">
+        <div className="loading-spinner-wrap">
+          <svg className="loading-spinner" viewBox="0 0 24 24">
+            <circle className="spinner-circle"></circle>
+            <path className="spinner-path"></path>
           </svg>
-          <p className="mt-4 text-gray-600">Loading report...</p>
+          <p className="loading-text">Loading report...</p>
         </div>
       </div>
     )
@@ -76,19 +76,17 @@ const Report: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
-          </div>
-          <button
-            onClick={() => navigate(-1)}
-            className="mt-4 btn btn-primary"
-          >
-            Back to Dashboard
-          </button>
+      <div className="alert alert-error">
+        <div className="alert-content">
+          <strong className="alert-title">Error: </strong>
+          <span className="alert-message">{error}</span>
         </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="btn btn-sm btn-outline"
+        >
+          Back to Dashboard
+        </button>
       </div>
     )
   }
@@ -100,99 +98,99 @@ const Report: React.FC = () => {
       const content = JSON.parse(report.content)
 
       return (
-        <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Security Assessment Report</h1>
+        <div className="report-document">
+          <h1 className="doc-title">Security Assessment Report</h1>
 
-          <div className="bg-gray-50 p-6 rounded-lg mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Executive Summary</h2>
-            <p className="text-gray-700 mb-4">This report summarizes the security assessment of the {scan.lab.name} application. The evaluation identified {content.findings.length} security vulnerabilities with a risk score of {content.risk_score}.</p>
-            <p className="text-gray-700">The assessment was performed on {new Date(report.generated_at).toLocaleDateString()} using AI-powered analysis.</p>
+          <div className="doc-section executive-summary">
+            <h2 className="doc-section-title">Executive Summary</h2>
+            <p className="doc-paragraph">This report summarizes the security assessment of the {scan.lab.name} application. The evaluation identified {content.findings.length} security vulnerabilities with a risk score of {content.risk_score}.</p>
+            <p className="doc-paragraph">The assessment was performed on {new Date(report.generated_at).toLocaleDateString()} using AI-powered analysis.</p>
           </div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Findings</h2>
+          <div className="doc-section">
+            <h2 className="doc-section-title">Findings</h2>
 
-          {content.findings.map((finding: any, index: number) => (
-            <div key={index} className="bg-white rounded-lg shadow p-6 mb-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{finding.vulnerability_type}</h3>
-                  <div className="flex items-center mt-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${finding.risk_level === 'critical' ? 'bg-red-100 text-red-800' :
-                        finding.risk_level === 'high' ? 'bg-red-100 text-red-800' :
-                        finding.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'}`}
+            {content.findings.map((finding: any, index: number) => (
+              <div key={index} className="finding-card">
+                <div className="finding-header">
+                  <div className="finding-title-group">
+                    <h3 className="finding-title">{finding.vulnerability_type}</h3>
+                    <span className={`badge ${
+                      finding.risk_level === 'critical' ? 'badge-critical' :
+                      finding.risk_level === 'high' ? 'badge-high' :
+                      finding.risk_level === 'medium' ? 'badge-medium' :
+                      'badge-low'}`}
                     >
                       {finding.risk_level.charAt(0).toUpperCase() + finding.risk_level.slice(1)}
                     </span>
                   </div>
+                  <div className="finding-severity">
+                    <span>Severity: {finding.risk_level}</span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm text-gray-500">Severity: {finding.risk_level}</span>
-                </div>
-              </div>
 
-              <div className="prose max-w-none">
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Technical Explanation</h4>
-                <p className="text-gray-700 mb-4">{finding.technical_explanation}</p>
+                <div className="finding-body">
+                  <h4 className="finding-subheading">Technical Explanation</h4>
+                  <p className="finding-text">{finding.technical_explanation}</p>
 
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Example Exploitation</h4>
-                <p className="text-gray-700 mb-4">{finding.example_exploitation}</p>
+                  <h4 className="finding-subheading">Example Exploitation</h4>
+                  <p className="finding-text">{finding.example_exploitation}</p>
 
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Prevention</h4>
-                <p className="text-gray-700 mb-4">{finding.prevention}</p>
+                  <h4 className="finding-subheading">Prevention</h4>
+                  <p className="finding-text">{finding.prevention}</p>
 
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Secure Code Recommendation</h4>
-                <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                  <code>{finding.secure_code_recommendation}</code>
-                </pre>
-              </div>
-            </div>
-          ))}
-
-          <div className="bg-gray-50 p-6 rounded-lg mt-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Evidence</h2>
-
-            {content.evidence && content.evidence.map((evidence: any, index: number) => (
-              <div key={index} className="mb-6">
-                <h3 className="text-xl font-medium text-gray-900 mb-2">Evidence #{index + 1}</h3>
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <p className="text-gray-700 mb-2"><strong>Payload:</strong> {evidence.payload}</p>
-                  <p className="text-gray-700 mb-2"><strong>Request:</strong> {evidence.request}</p>
-                  <p className="text-gray-700"><strong>Response:</strong> {evidence.response}</p>
+                  <h4 className="finding-subheading">Secure Code Recommendation</h4>
+                  <pre className="code-block">
+                    <code>{finding.secure_code_recommendation}</code>
+                  </pre>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-lg mt-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">AI Recommendations</h2>
-            <p className="text-gray-700 mb-4">{content.ai_recommendations}</p>
+          <div className="doc-section evidence-section">
+            <h2 className="doc-section-title">Evidence</h2>
+
+            {content.evidence && content.evidence.map((evidence: any, index: number) => (
+              <div key={index} className="evidence-card">
+                <h3 className="evidence-title">Evidence #{index + 1}</h3>
+                <div className="evidence-details">
+                  <p className="evidence-line"><strong>Payload:</strong> <code className="inline-code">{evidence.payload}</code></p>
+                  <p className="evidence-line"><strong>Request:</strong> <code className="inline-code">{evidence.request}</code></p>
+                  <p className="evidence-line"><strong>Response:</strong> <code className="inline-code">{evidence.response}</code></p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="doc-section recommendations-section">
+            <h2 className="doc-section-title">AI Recommendations</h2>
+            <p className="doc-paragraph">{content.ai_recommendations}</p>
 
             {content.ongoing_recommendations && (
-              <div className="mt-4">
-                <h3 className="text-xl font-medium text-gray-900 mb-2">Ongoing Recommendations</h3>
-                <ul className="list-disc list-inside text-gray-700">
+              <div className="ongoing-recommendations" style={{ marginTop: '0.75rem' }}>
+                <h3 className="finding-subheading" style={{ marginBottom: '0.5rem' }}>Ongoing Recommendations</h3>
+                <ul className="recommendations-list">
                   {content.ongoing_recommendations.map((rec: string, index: number) => (
-                    <li key={index} className="mb-2">{rec}</li>
+                    <li key={index}>{rec}</li>
                   ))}
                 </ul>
               </div>
             )}
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-lg mt-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Risk Score</h2>
-            <p className="text-gray-700 mb-4">The overall risk score for this assessment is: {content.risk_score}/100</p>
+          <div className="doc-section risk-score-section">
+            <h2 className="doc-section-title">Risk Score</h2>
+            <p className="doc-paragraph">The overall risk score for this assessment is: <strong style={{ color: 'var(--text-primary)' }}>{content.risk_score}/100</strong></p>
 
-            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+            <div className="risk-progress-track">
               <div
-                className="bg-red-600 h-2.5 rounded-full"
+                className="risk-progress-bar"
                 style={{ width: `${(content.risk_score / 100) * 100}%` }}
               ></div>
             </div>
 
-            <p className="text-gray-700">
+            <p className="risk-level-alert">
               {content.risk_score > 80 ? 'Critical: Immediate action required' :
                 content.risk_score > 60 ? 'High: Action required soon' :
                 content.risk_score > 40 ? 'Medium: Address in future updates' :
@@ -203,9 +201,9 @@ const Report: React.FC = () => {
       )
     } catch (e) {
       return (
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-700">Failed to parse report content</p>
-          <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+        <div className="alert alert-error">
+          <p>Failed to parse report content</p>
+          <pre className="code-block" style={{ marginTop: '0.75rem' }}>
             {report.content}
           </pre>
         </div>
@@ -214,33 +212,36 @@ const Report: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="rounded-lg h-full">
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="mr-4 text-blue-600 hover:text-blue-500"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900">Security Report</h1>
+    <div className="report-page">
+      <div className="report-container">
+        <div className="report-content">
+          <div className="page-header-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button
+                onClick={() => navigate(-1)}
+                className="btn-icon"
+                aria-label="Back"
+              >
+                <svg className="icon-back" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="page-title">Security Report</h1>
+            </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+          <div className="card report-card">
+            <div className="card-header report-header-bar">
+              <div className="report-header-inner">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Assessment of {scan.lab.name}</h2>
-                  <p className="text-gray-600">Generated on {new Date(report.generated_at).toLocaleString()}</p>
+                  <h2 className="report-lab-title">Assessment of {scan.lab.name}</h2>
+                  <p className="report-date-subtitle">Generated on {new Date(report.generated_at).toLocaleString()}</p>
                 </div>
-                <div className="flex space-x-3">
+                <div className="report-download-controls">
                   <select
                     value={downloadType}
                     onChange={(e) => setDownloadType(e.target.value as any)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="form-select form-select-sm"
                   >
                     <option value="html">HTML</option>
                     <option value="markdown">Markdown</option>
@@ -248,7 +249,7 @@ const Report: React.FC = () => {
                   </select>
                   <button
                     onClick={downloadReport}
-                    className="bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="btn btn-sm btn-primary"
                   >
                     Download
                   </button>
@@ -256,7 +257,7 @@ const Report: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-5">
+            <div className="card-body report-body">
               {renderContent()}
             </div>
           </div>

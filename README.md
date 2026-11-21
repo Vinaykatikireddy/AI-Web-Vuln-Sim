@@ -6,7 +6,7 @@ A full-stack educational cyber range that allows users to safely launch simulate
 
 ```
 project/
-├── backend/           # FastAPI Python backend (app/, templates/, pyproject.toml)
+├── backend/           # FastAPI Python backend
 │   ├── app/
 │   │   ├── api/       # Routers: attack, auth, dashboard, lab, payload, report
 │   │   ├── models/    # SQLAlchemy models
@@ -14,7 +14,7 @@ project/
 │   │   ├── core/      # Security, rate limiting
 │   │   ├── scripts/   # DB seeding utilities
 │   │   └── services/  # Attack engine, lab manager, AI service, report generator
-│   └── templates/reports/  # Jinja2 report templates
+│   └── templates/     # Jinja2 report templates
 ├── frontend/          # React/Vite/TypeScript frontend
 └── labs/              # Vulnerable labs
 ```
@@ -23,11 +23,11 @@ project/
 
 ### Backend
 
-1. Install Docker and Python 3.10+
+1. Install Python 3.10+
 2. Set environment variables:
    ```bash
-   export SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')
-   export DATABASE_URL=sqlite:///./app.db  # or a PostgreSQL URL
+   export SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+   export DATABASE_URL=sqlite:///./database.db  # or a PostgreSQL URL
    ```
 3. Run the backend:
    ```bash

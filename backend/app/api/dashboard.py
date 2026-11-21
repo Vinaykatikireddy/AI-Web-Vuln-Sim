@@ -16,8 +16,8 @@ def get_dashboard(current_user: base.User = Depends(security.get_current_active_
         base.Scan.status == "completed"
     ).count()
 
-    # Get active labs
-    active_labs = db.query(base.Lab).filter(base.Lab.status == "running").all()
+    # Get active labs (all external labs are active)
+    active_labs = db.query(base.Lab).all()
 
     # Get recent scans
     recent_scans = db.query(base.Scan).filter(

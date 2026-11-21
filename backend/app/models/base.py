@@ -27,10 +27,7 @@ class Lab(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    status = Column(String(20), default="stopped")  # stopped, running, starting, stopping, deleted
-    docker_image = Column(String(255), nullable=False)
-    port = Column(Integer)
-    external_url = Column(String(255))  # For external labs, if any
+    external_url = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

@@ -68,13 +68,13 @@ const ScanResults: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <div className="page-loading">
+                <div className="loading-spinner-wrap">
+                    <svg className="loading-spinner" viewBox="0 0 24 24">
+                        <circle className="spinner-circle"></circle>
+                        <path className="spinner-path"></path>
                     </svg>
-                    <p className="mt-4 text-gray-600">Loading scan results...</p>
+                    <p className="loading-text">Loading scan results...</p>
                 </div>
             </div>
         )
@@ -82,91 +82,92 @@ const ScanResults: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        <strong className="font-bold">Error: </strong>
-                        <span className="block sm:inline">{error}</span>
-                    </div>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="mt-4 btn btn-primary"
-                    >
-                        Back to Dashboard
-                    </button>
+            <div className="alert alert-error">
+                <div className="alert-content">
+                    <strong className="alert-title">Error: </strong>
+                    <span className="alert-message">{error}</span>
                 </div>
+                <button
+                    onClick={() => navigate(-1)}
+                    className="btn btn-sm btn-outline"
+                >
+                    Back to Dashboard
+                </button>
             </div>
         )
     }
 
     if (!scan || !logs) return null
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadgeClass = (status: string) => {
         switch (status) {
-            case 'success': return 'bg-green-100 text-green-800'
-            case 'failure': return 'bg-red-100 text-red-800'
-            case 'vulnerability_detected': return 'bg-red-100 text-red-800'
-            default: return 'bg-gray-100 text-gray-800'
+            case 'success': return 'badge-success'
+            case 'failure': return 'badge-danger'
+            case 'vulnerability_detected': return 'badge-danger'
+            default: return 'badge-neutral'
         }
     }
 
     return (
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="px-4 py-6 sm:px-0">
-                <div className="rounded-lg h-full">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="mr-4 text-blue-600 hover:text-blue-500"
-                        >
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h1 className="text-3xl font-bold text-gray-900">Scan Results</h1>
+        <div className="scan-results-page">
+            <div className="scan-results-container">
+                <div className="scan-results-content">
+                    <div className="page-header-row">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="btn-icon"
+                                aria-label="Back"
+                            >
+                                <svg className="icon-back" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className="page-title">Scan Results</h1>
+                        </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-                        <div className="px-6 py-5 border-b border-gray-200">
-                            <div className="flex items-center justify-between">
+                    <div className="card scan-card">
+                        <div className="card-header scan-header">
+                            <div className="scan-header-inner">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-gray-900">{scan.lab.name}</h2>
-                                    <p className="text-gray-600">{scan.attack_type}</p>
+                                    <h2 className="scan-lab-title">{scan.lab.name}</h2>
+                                    <p className="scan-attack-type">{scan.attack_type}</p>
                                 </div>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-${scan.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                        scan.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-gray-100 text-gray-800'}`}
+                                <span className={`badge badge-lg ${
+                                    scan.status === 'completed' ? 'badge-success' :
+                                    scan.status === 'running' ? 'badge-info' :
+                                    'badge-neutral'}`}
                                 >
                                     {scan.status.charAt(0).toUpperCase() + scan.status.slice(1)}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="px-6 py-5">
+                        <div className="card-body scan-body">
                             {scan.status === 'completed' && (
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">AI Analysis Status</h3>
-                                    <div className="flex items-center space-x-4">
+                                <div className="ai-analysis-box">
+                                    <h3 className="section-heading">AI Analysis Status</h3>
+                                    <div>
                                         {scan.report ? (
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                            <span className="badge badge-success badge-lg">
                                                 Analysis Complete
                                             </span>
                                         ) : (
-                                            <div className="flex items-center">
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                            <div className="ai-pending-row">
+                                                <span className="status-note">
                                                     Waiting for AI Analysis
                                                 </span>
                                                 <button
                                                     onClick={analyzeScan}
                                                     disabled={isAnalyzing}
-                                                    className="ml-4 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                                                    className="btn btn-primary btn-sm"
                                                 >
                                                     {isAnalyzing ? (
-                                                        <span className="flex items-center">
-                                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        <span className="btn-loading">
+                                                            <svg className="loading-spinner-sm" viewBox="0 0 24 24">
+                                                                <circle className="spinner-circle"></circle>
+                                                                <path className="spinner-path"></path>
                                                             </svg>
                                                             Analyzing...
                                                         </span>
@@ -180,37 +181,38 @@ ${scan.status === 'completed' ? 'bg-green-100 text-green-800' :
                                 </div>
                             )}
 
-                            <div className="mt-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+                            <div className="activity-table-section">
+                                <h3 className="section-heading">Recent Activity</h3>
 
-                                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
+                                <div className="table-wrapper">
+                                    <table className="data-table">
+                                        <thead>
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payload</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                                                <th>Timestamp</th>
+                                                <th>Payload</th>
+                                                <th>Response</th>
+                                                <th>Result</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody>
                                             {logs.length > 0 ? (
                                                 logs.slice(0, 10).map((log: any) => (
-                                                    <tr key={log.id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <tr key={log.id}>
+                                                        <td>
                                                             {new Date(log.timestamp).toLocaleString()}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
+                                                        <td>
+                                                            <div className="code-cell font-mono">
                                                                 {log.payload.length > 50 ? `${log.payload.substring(0, 50)}...` : log.payload}
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                            {log.response.length > 30 ? `${log.response.substring(0, 30)}...` : log.response}
+                                                        <td>
+                                                            <div className="code-cell font-mono">
+                                                                {log.response.length > 30 ? `${log.response.substring(0, 30)}...` : log.response}
+                                                            </div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(log.result)}`}
-                                                            >
+                                                        <td>
+                                                            <span className={`badge ${getStatusBadgeClass(log.result)}`}>
                                                                 {log.result.includes('detection') ? 'Vulnerability Found' : log.result}
                                                             </span>
                                                         </td>
@@ -218,7 +220,7 @@ ${scan.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                                                    <td colSpan={4} className="table-empty">
                                                         No logs yet
                                                     </td>
                                                 </tr>
@@ -228,8 +230,8 @@ ${scan.status === 'completed' ? 'bg-green-100 text-green-800' :
                                 </div>
 
                                 {logs.length > 10 && (
-                                    <div className="mt-4 text-center">
-                                        <a href="#" className="text-blue-600 hover:text-blue-500">
+                                    <div className="table-more-logs">
+                                        <a href="#" className="link-more">
                                             View {logs.length - 10} more logs
                                         </a>
                                     </div>

@@ -27,31 +27,62 @@ const Attacks: React.FC = () => {
     fetchAttacks();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="page-loading">
+        <div className="loading-spinner-wrap">
+          <svg className="loading-spinner" viewBox="0 0 24 24">
+            <circle className="spinner-circle"></circle>
+            <path className="spinner-path"></path>
+          </svg>
+          <p className="loading-text">Loading attacks...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-error">
+        <div className="alert-content">
+          <strong className="alert-title">Error: </strong>
+          <span className="alert-message">{error}</span>
+        </div>
+        <button onClick={() => navigate(`/lab/${id}`)} className="btn btn-sm btn-outline">
+          Back to Lab
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Attacks for Lab {id}</h1>
-      <button
-        onClick={() => navigate(`/lab/${id}`)}
-        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Back to Lab
-      </button>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {attacks.map((attack) => (
-          <div key={attack.id} className="p-4 border rounded shadow">
-            <h2 className="text-xl font-semibold">{attack.name}</h2>
-            <p className="text-gray-600">{attack.description}</p>
-            <button
-              onClick={() => navigate(`/lab/${id}/attack/${attack.id}`)}
-              className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              Run Attack
-            </button>
-          </div>
-        ))}
+    <div className="attacks-page">
+      <div className="attacks-container">
+        <div className="page-header-row">
+          <h1 className="page-title">Attacks for Lab {id}</h1>
+          <button
+            onClick={() => navigate(`/lab/${id}`)}
+            className="btn btn-outline btn-sm"
+          >
+            Back to Lab
+          </button>
+        </div>
+        <div className="attacks-grid">
+          {attacks.map((attack) => (
+            <div key={attack.id} className="card attack-card">
+              <div className="card-body">
+                <h2 className="attack-title">{attack.name}</h2>
+                <p className="attack-desc">{attack.description}</p>
+                <button
+                  onClick={() => navigate(`/lab/${id}/attack/${attack.id}`)}
+                  className="btn btn-primary btn-sm"
+                >
+                  Run Attack
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

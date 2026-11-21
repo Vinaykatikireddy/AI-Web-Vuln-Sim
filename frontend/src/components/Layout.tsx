@@ -19,22 +19,22 @@ const Layout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="app-layout">
 
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 overflow-auto">
+      <header className="site-header">
+        <div className="header-container">
+          <div className="header-inner">
 
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <Link to="/" className="flex items-center">
+            <div className="header-brand">
+              <Link to="/" className="brand-link">
                 <img
-                  className="h-8 w-auto"
+                  className="brand-logo"
                   src={logoSvg}
                   alt="Attack Simulation Platform"
                 />
-                <span className="ml-2 text-xl font-bold text-gray-900 whitespace-nowrap">
+                <span className="brand-name">
                   AttackSim
                 </span>
               </Link>
@@ -42,7 +42,7 @@ const Layout: React.FC = () => {
 
             {/* Desktop Navigation */}
             {user && (
-              <nav className="hidden md:flex items-stretch justify-end ml-auto mr-4 lg:mr-6">
+              <nav className="desktop-nav">
                 {navigationItems.map((item) => {
                   const isActive = location.pathname === item.path;
 
@@ -50,20 +50,7 @@ const Layout: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`
-                      inline-flex items-center justify-center
-                      px-3 lg:px-4
-                      pt-1
-                      border-b-2
-                      text-sm lg:text-base
-                      font-medium
-                      whitespace-nowrap
-                      transition-colors
-                      ${isActive
-                          ? "border-blue-500 text-gray-900"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                        }
-                    `}
+                      className={`nav-link ${isActive ? 'active' : ''}`}
                     >
                       {item.name}
                     </Link>
@@ -74,17 +61,17 @@ const Layout: React.FC = () => {
 
             {/* Mobile Hamburger */}
             {user && (
-              <div className="md:hidden ml-auto mr-4 relative">
+              <div className="mobile-nav-toggle-wrap">
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  className="mobile-menu-btn"
                   aria-label="Toggle navigation menu"
                 >
                   {mobileMenuOpen ? (
                     // X icon
                     <svg
-                      className="w-6 h-6"
+                      className="icon-menu"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -99,7 +86,7 @@ const Layout: React.FC = () => {
                   ) : (
                     // Hamburger icon
                     <svg
-                      className="w-6 h-6"
+                      className="icon-menu"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -116,7 +103,7 @@ const Layout: React.FC = () => {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                  <nav className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+                  <nav className="mobile-menu-dropdown">
                     {navigationItems.map((item) => {
                       const isActive = location.pathname === item.path;
 
@@ -125,13 +112,7 @@ const Layout: React.FC = () => {
                           key={item.path}
                           to={item.path}
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`
-                          block px-4 py-3 text-sm font-medium
-                          ${isActive
-                              ? "bg-blue-50 text-blue-600"
-                              : "text-gray-700 hover:bg-gray-50"
-                            }
-                        `}
+                          className={`mobile-nav-link ${isActive ? 'active' : ''}`}
                         >
                           {item.name}
                         </Link>
@@ -143,38 +124,38 @@ const Layout: React.FC = () => {
             )}
 
             {/* Account / Authentication */}
-            <div className="flex-shrink-0">
+            <div className="header-auth">
               {loading ? (
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-500 whitespace-nowrap">
+                <div className="auth-loading">
+                  <span className="auth-loading-text">
                     Loading...
                   </span>
                 </div>
               ) : user ? (
-                <div className="flex items-center gap-2 lg:gap-3">
-                  <span className="text-sm lg:text-base text-gray-700 max-w-[120px] truncate">
+                <div className="user-profile-bar">
+                  <span className="user-badge">
                     {user?.username}
                   </span>
 
                   <button
                     onClick={() => logout(navigate)}
-                    className="btn btn-secondary text-sm lg:text-base whitespace-nowrap"
+                    className="btn btn-sm btn-outline btn-logout"
                   >
                     Logout
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 lg:gap-4">
+                <div className="auth-links">
                   <Link
                     to="/login"
-                    className="btn btn-secondary text-sm lg:text-base whitespace-nowrap"
+                    className="btn btn-sm btn-outline"
                   >
                     Login
                   </Link>
 
                   <Link
                     to="/register"
-                    className="btn btn-primary text-sm lg:text-base whitespace-nowrap"
+                    className="btn btn-sm btn-primary"
                   >
                     Register
                   </Link>
@@ -187,14 +168,14 @@ const Layout: React.FC = () => {
 
 
       {/* Main content */}
-      <main className="max-w-7xl w-full mx-auto px-4 md:px-6 lg:px-8 py-8 flex-1">
+      <main className="main-content">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-auto">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
-          <p className="text-center text-gray-500 text-md">
+      <footer className="site-footer">
+        <div className="footer-container">
+          <p className="footer-text">
             AI-Powered Web Application Attack Simulation Platform - For Educational Use Only
           </p>
         </div>

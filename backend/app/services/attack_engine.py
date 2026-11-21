@@ -45,11 +45,11 @@ class AttackEngine:
             db.close()
 
     def _get_base_url(self, lab_id: int) -> Optional[str]:
-        """Resolve the target URL for a lab: prefer its external URL, fall back to local Docker port."""
+        """Resolve the target URL for a lab using its external URL."""
         lab = self.lab_manager.get_lab_by_id(lab_id)
         if not lab:
             return None
-        return lab.get("external_url") or f"http://localhost:{lab['port']}"
+        return lab.get("external_url")
 
     def _get_baseline(self, url: str) -> Optional[requests.Response]:
         """Fetch the page without any payload so detections can compare against a normal response."""

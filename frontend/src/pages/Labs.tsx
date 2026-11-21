@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { errorHandler } from '../utils/errorHandler'
+
+import { useAuth } from '../context/AuthContext'
+
+// The /labs endpoint should return an array, but guard against unexpected
+// payloads (e.g. an HTML page or a wrapped body) so rendering never crashes.
+const toLabList = (data: any): any[] | null => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.labs)) return data.labs
+    if (Array.isArray(data?.data)) return data.data
+    return null
+}
+
 
 const Labs: React.FC = () => {
     const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
     const [labs, setLabs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchLabs = async () => {
@@ -17,7 +31,12 @@ const Labs: React.FC = () => {
                         'Authorization': `Bearer ${localStorage.getItem('auth')}`
                     }
                 })
-                setLabs(response.data)
+                const list = toLabList(response.data)
+                if (!list) {
+                    setError('Unexpected response from the server. Please try again.')
+                    return
+                }
+                setLabs(list)
             } catch (err: any) {
                 setError(errorHandler(err));
             } finally {
@@ -28,53 +47,15 @@ const Labs: React.FC = () => {
         fetchLabs()
     }, [])
 
-    const handleStartLab = async (labId: number) => {
-        try {
-            await axios.post(`${API_BASE_URL}/labs/start`, { lab_id: labId }, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth')}`
-                }
-            })
-            // Refresh labs list
-            const response = await axios.get(`${API_BASE_URL}/labs`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth')}`
-                }
-            })
-            setLabs(response.data)
-        } catch (err: any) {
-            setError(errorHandler(err));
-        }
-    }
-
-    const handleStopLab = async (labId: number) => {
-        try {
-            await axios.post(`${API_BASE_URL}/labs/stop`, { lab_id: labId }, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth')}`
-                }
-            })
-            // Refresh labs list
-            const response = await axios.get(`${API_BASE_URL}/labs`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth')}`
-                }
-            })
-            setLabs(response.data)
-        } catch (err: any) {
-            setError(errorHandler(err));
-        }
-    }
-
-    if (loading) {
+    if (loading || authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <div className="page-loading">
+                <div className="loading-spinner-wrap">
+                    <svg className="loading-spinner" viewBox="0 0 24 24">
+                        <circle className="spinner-circle"></circle>
+                        <path className="spinner-path"></path>
                     </svg>
-                    <p className="mt-4 text-gray-600">Loading labs...</p>
+                    <p className="loading-text">Loading labs...</p>
                 </div>
             </div>
         )
@@ -82,79 +63,66 @@ const Labs: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        <strong className="font-bold">Error: </strong>
-                        <span className="block sm:inline">{error}</span>
-                    </div>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="mt-4 btn btn-primary"
-                    >
-                        Try Again
-                    </button>
+            <div className="alert alert-error">
+                <div className="alert-content">
+                    <strong className="alert-title">Error: </strong>
+                    <span className="alert-message">{error}</span>
                 </div>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="btn btn-sm btn-outline"
+                >
+                    Try Again
+                </button>
             </div>
         )
     }
 
-    console.log("labs:", labs);
-    console.log("isArray:", Array.isArray(labs));
     return (
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="px-4 py-6 sm:px-0">
-                <div className="rounded-lg h-full p-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-6">Vulnerable Labs</h1>
+        <div className="labs-page">
+            <div className="labs-container">
+                <div className="labs-content">
+                    <h1 className="page-title">Vulnerable Labs</h1>
 
-                    <p className="text-lg text-gray-600 mb-8">
-                        Select a lab to start a secure, simulated attack environment.
+                    <p className="page-subtitle">
+                        Select a lab to launch simulated attacks against active external targets.
                     </p>
 
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="labs-grid">
                         {labs.map((lab: any) => (
-                            <div key={lab.id} className="bg-white rounded-lg shadow overflow-hidden">
-                                <div className="p-6">
-                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{lab.name}</h3>
-                                    <p className="text-gray-600 mb-4">{lab.description || 'No description available'}</p>
+                            <div key={lab.id} className="card lab-card">
+                                <div className="card-body lab-card-body">
+                                    <div className="lab-header">
+                                        <h3 className="lab-title">{lab.name}</h3>
+                                    </div>
+                                    <p className="lab-description">{lab.description || 'No description available'}</p>
 
-                                    {lab.status === 'error' && (
-                                        <div className="flex items-center mb-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${lab.status === 'running' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                {lab.status.charAt(0).toUpperCase() + lab.status.slice(1)}
-                                            </span>
-                                        </div>
-                                    )}
+                                    <div className="lab-card-actions">
+                                        <button
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() => {
+                                                if (!user) {
+                                                    navigate('/login', { replace: true })
+                                                } else {
+                                                    navigate(`/lab/${lab.id}/attacks`)
+                                                }
+                                            }}
+                                        >
+                                            Run Attack
+                                        </button>
 
-                                    <div className="flex space-x-2">
-                                        {lab.status === 'error' ? (
-                                            <button
-                                                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 cursor-not-allowed"
-                                                >
-                                                    Lab Broken
-                                                </button>
-                                        ) : lab.status === 'stopped' ? (
-                                                <button
-                                                    onClick={() => handleStartLab(lab.id)}
-                                                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                                >
-                                                    Start Lab
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleStopLab(lab.id)}
-                                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                                                >
-                                                    Stop Lab
-                                                </button>
-                                            )
-                                        }
-                                        <Link
-                                            to={`/lab/${lab.id}`}
-                                            className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                        <button
+                                            className="btn btn-sm btn-outline"
+                                            onClick={() => {
+                                                if (!user) {
+                                                    navigate('/login', { replace: true })
+                                                } else {
+                                                    navigate(`/lab/${lab.id}`)
+                                                }
+                                            }}
                                         >
                                             Details
-                                        </Link>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
