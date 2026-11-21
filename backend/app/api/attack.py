@@ -25,17 +25,15 @@ def update_scan_status(db: Session, scan_id: int, status: str):
 
 
 @router.post("/scans/run", response_model=scan_schemas.ScanOut)
-def run_attack_simulation(scan_data: scan_schemas.ScanCreate, current_user: base.User = Depends(security.get_current_active_user), db: Session = Depends(get_db)):
-    # Validate the lab exists and is running
+def run_attack_simulation(
+    scan_data: scan_schemas.ScanCreate,
+    current_user: base.User = Depends(security.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    # Validate the lab exists (external labs are always active)
     lab = db.query(base.Lab).filter(base.Lab.id == scan_data.lab_id).first()
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
-
-    if lab.status != "running":
-        raise HTTPException(
-            status_code=400,
-            detail=f"Lab must be running to perform attacks. Current status: {lab.status}",
-        )
 
     # Validate attack type
     valid_attack_types = [
@@ -56,11 +54,11 @@ def run_attack_simulation(scan_data: scan_schemas.ScanCreate, current_user: base
 
     # Create scan record
     scan = base.Scan(
-            user_id=current_user.id,
-            lab_id=scan.lab_id,
-            attack_type=scan.attack_type,
-            status="pending"
-        )
+        user_id=current_user.id,
+        lab_id=scan_data.lab_id,
+        attack_type=scan_data.attack_type,
+        status="pending",
+    )
     db.add(scan)
     db.commit()
     db.refresh(scan)
@@ -84,8 +82,13 @@ def run_attack_simulation(scan_data: scan_schemas.ScanCreate, current_user: base
         logger.exception(f"Attack simulation failed for scan {scan.id}")
         raise HTTPException(status_code=500, detail="Attack simulation failed")
 
+
 @router.get("/scans/{scan_id}/results", response_model=Dict[str, Any])
-def get_attack_results(scan_id: int, current_user: base.User = Depends(security.get_current_active_user), db: Session = Depends(get_db)):
+def get_attack_results(
+    scan_id: int,
+    current_user: base.User = Depends(security.get_current_active_user),
+    db: Session = Depends(get_db),
+):
     scan = db.query(base.Scan).filter(base.Scan.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")

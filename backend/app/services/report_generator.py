@@ -5,7 +5,6 @@ from typing import Dict, Any, List
 from datetime import datetime
 from services.ai_service import analyze_attacks_with_ai
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
 from models import base
 from database import get_db
 from services.logging_service import LoggingService
@@ -253,6 +252,10 @@ class ReportGenerator:
             elif report_format == "pdf":
                 # Generate PDF from HTML
                 # Convert HTML to PDF using WeasyPrint
+                # Imported lazily: WeasyPrint requires native GTK/Pango libraries
+                # (gobject-2.0), so only load it when PDF generation is requested.
+                from weasyprint import HTML
+
                 html = HTML(string=html_content)
                 pdf_content = html.write_pdf()
                 return pdf_content

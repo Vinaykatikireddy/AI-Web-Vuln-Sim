@@ -22,7 +22,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError(
         "SECRET_KEY environment variable is not set. "
-        "Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'"
+        "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
     )
 JWT_ALGORITHM = "HS256"
 

@@ -48,37 +48,39 @@ const Register: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
+        <div className="auth-page">
+            <div className="auth-card">
+                <div className="auth-header">
                     <img
-                        className="mx-auto h-24 w-auto"
+                        className="auth-logo"
                         src={logoSvg}
                         alt="Attack Simulation Platform"
                     />
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    <h2 className="auth-title">
                         Create your account
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <p className="auth-subtitle">
                         Or{' '}
                         <Link
                             to="/login"
-                            className="font-medium text-blue-600 hover:text-blue-500"
+                            className="auth-link"
                         >
                             sign in to your existing account
                         </Link>
                     </p>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <form className="auth-form" onSubmit={handleSubmit}>
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                            <strong className="font-bold">Error: </strong>
-                            <span className="block sm:inline">{error}</span>
+                        <div className="alert alert-error">
+                            <div className="alert-content">
+                                <strong className="alert-title">Error: </strong>
+                                <span className="alert-message">{error}</span>
+                            </div>
                         </div>
                     )}
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <label htmlFor="username" className="sr-only">
+                    <div className="form-fields">
+                        <div className="form-group">
+                            <label htmlFor="username" className="form-label">
                                 Username
                             </label>
                             <input
@@ -87,14 +89,14 @@ const Register: React.FC = () => {
                                 type="text"
                                 autoComplete="username"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="form-input"
                                 placeholder="Username"
                                 value={formData.username}
                                 onChange={handleChange}
                             />
                         </div>
-                        <div>
-                            <label htmlFor="email" className="sr-only">
+                        <div className="form-group">
+                            <label htmlFor="email" className="form-label">
                                 Email address
                             </label>
                             <input
@@ -103,14 +105,14 @@ const Register: React.FC = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="form-input"
                                 placeholder="Email address"
                                 value={formData.email}
                                 onChange={handleChange}
                             />
                         </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">
+                        <div className="form-group">
+                            <label htmlFor="password" className="form-label">
                                 Password
                             </label>
                             <input
@@ -119,14 +121,14 @@ const Register: React.FC = () => {
                                 type="password"
                                 autoComplete="new-password"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="form-input"
                                 placeholder="Password"
                                 value={formData.password}
                                 onChange={handleChange}
                             />
                         </div>
-                        <div>
-                            <label htmlFor="confirmPassword" className="sr-only">
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword" className="form-label">
                                 Confirm Password
                             </label>
                             <input
@@ -135,7 +137,7 @@ const Register: React.FC = () => {
                                 type="password"
                                 autoComplete="new-password"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="form-input"
                                 placeholder="Confirm Password"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
@@ -143,17 +145,17 @@ const Register: React.FC = () => {
                         </div>
                     </div>
 
-                    <div>
+                    <div className="form-actions">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                            className="btn btn-primary btn-block btn-lg"
                         >
                             {loading ? (
-                                <span className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <span className="btn-loading">
+                                    <svg className="loading-spinner-sm" viewBox="0 0 24 24">
+                                        <circle className="spinner-circle"></circle>
+                                        <path className="spinner-path"></path>
                                     </svg>
                                     Creating account...
                                 </span>

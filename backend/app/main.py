@@ -6,13 +6,13 @@ from api import attack, auth, dashboard, report, payload, lab
 from core.limiter import limiter
 
 # DATABASE INITIALIZATION
-# from database import engine
-# from models import base
-# from scripts.init_db import init_db
-# from scripts.init_payloads import init_payloads
+from database import engine
+from models import base
+from scripts.init_db import init_db
+from scripts.init_payloads import init_payloads
 
-# Create database tables
-# base.Base.metadata.create_all(bind=engine)
+#Create database tables
+base.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AI-Powered Attack Simulation Platform API",

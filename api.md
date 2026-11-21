@@ -237,9 +237,7 @@ GET /labs
       "id": "integer",
       "name": "string",
       "description": "string",
-      "docker_image": "string",
-      "port": "integer",
-      "status": "string",
+      "external_url": "string",
       "created_at": "string",
       "updated_at": "string"
     }
@@ -269,9 +267,7 @@ GET /labs/{lab_id}
     "id": "integer",
     "name": "string",
     "description": "string",
-    "docker_image": "string",
-    "port": "integer",
-    "status": "string",
+    "external_url": "string",
     "created_at": "string",
     "updated_at": "string"
   },
@@ -295,7 +291,7 @@ GET /labs/{lab_id}
 
 ### Start Lab
 
-Starts a vulnerable lab container.
+Starts / activates a vulnerable lab target.
 
 ```
 POST /labs/start
@@ -317,9 +313,7 @@ POST /labs/start
       "id": "integer",
       "name": "string",
       "description": "string",
-      "docker_image": "string",
-      "port": "integer",
-      "status": "string",
+      "external_url": "string",
       "created_at": "string",
       "updated_at": "string"
     }
@@ -355,7 +349,7 @@ POST /labs/start
 
 ### Stop Lab
 
-Stops a vulnerable lab container.
+Stops a vulnerable lab target.
 
 ```
 POST /labs/stop
@@ -377,9 +371,7 @@ POST /labs/stop
       "id": "integer",
       "name": "string",
       "description": "string",
-      "docker_image": "string",
-      "port": "integer",
-      "status": "string",
+      "external_url": "string",
       "created_at": "string",
       "updated_at": "string"
     }
