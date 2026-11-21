@@ -6,7 +6,7 @@ from schemas import lab as lab_schemas
 from models import base
 from services.lab_manager import LabManager
 
-router = APIRouter(prefix="/api", tags=["lab"])
+router = APIRouter()
 
 lab_manager = LabManager()
 

@@ -18,6 +18,9 @@ app = FastAPI(
     title="AI-Powered Attack Simulation Platform API",
     description="Backend API for educational cybersecurity training platform",
     version="0.1.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None
 )
 
 app.state.limiter = limiter
@@ -26,7 +29,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Configure CORS - restrict to known frontend origins via CORS_ORIGINS 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://vinaykatikireddy-portfolio.hf.space/ai-web-vuln-sim"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://vinaykatikireddy-portfolio.hf.space/ai-web-vuln-sim", "https://vinaykatikireddy.is-a.dev/ai-web-vuln-sim"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -7,7 +7,7 @@ from schemas import user as user_schemas
 from core import security
 from core.limiter import limiter
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth")
 
 
 def get_user_by_username(db: Session, username: str):

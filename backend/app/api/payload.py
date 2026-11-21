@@ -6,7 +6,7 @@ from schemas import payload as payload_schemas
 from core import security
 
 
-router = APIRouter(prefix="/api", tags=["payloads"])
+router = APIRouter()
 
 
 def get_payload(db: Session, payload_id: int):

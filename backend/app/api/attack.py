@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", tags=["attacks"])
+router = APIRouter()
 
 attack_engine = AttackEngine()
 

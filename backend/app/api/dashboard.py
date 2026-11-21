@@ -5,7 +5,7 @@ from models import base
 from schemas import scan as scan_schemas
 from core import security
 
-router = APIRouter(prefix="/api", tags=["dashboard"])
+router = APIRouter()
 
 @router.get("/dashboard", response_model=dict)
 def get_dashboard(current_user: base.User = Depends(security.get_current_active_user), db: Session = Depends(get_db)):

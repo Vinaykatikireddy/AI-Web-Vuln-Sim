@@ -8,7 +8,7 @@ from core import security
 from typing import Dict, Any
 import json
 
-router = APIRouter(prefix="/api", tags=["reports"])
+router = APIRouter()
 
 report_generator = ReportGenerator()
 
