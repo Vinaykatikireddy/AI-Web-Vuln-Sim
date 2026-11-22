@@ -29,10 +29,5 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserOut(UserBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
+class UserResponse(BaseModel):
+    message: str

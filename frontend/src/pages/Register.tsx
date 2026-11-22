@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { useAuth } from '../context/AuthContext'
 import { errorHandler } from '../utils/errorHandler'
 import logoSvg from '../logo.svg';
 
@@ -15,7 +14,7 @@ const Register: React.FC = () => {
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-    const { checkAuth } = useAuth()
+    const navigate = useNavigate()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -27,22 +26,31 @@ const Register: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
+        setLoading(true)
 
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match')
+            setLoading(false)
             return
         }
 
         try {
-            await axios.post(`${API_BASE_URL}/auth/register`, {
+            const response = await axios.post(`${API_BASE_URL}/auth/register`, {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password
             })
 
-            // Redirect to login page
-            checkAuth()
+            setLoading(false)
+            setLoading(false)
+
+            navigate("/login", {
+                state: {
+                    successMessage: response.data.message || 'Account created successfully. Please login.'
+                }
+            })
         } catch (err: any) {
+            setLoading(false)
             setError(errorHandler(err));
         }
     }
@@ -72,10 +80,7 @@ const Register: React.FC = () => {
                 <form className="auth-form" onSubmit={handleSubmit}>
                     {error && (
                         <div className="alert alert-error">
-                            <div className="alert-content">
-                                <strong className="alert-title">Error: </strong>
-                                <span className="alert-message">{error}</span>
-                            </div>
+                            <div className="alert-content">{error}</div>
                         </div>
                     )}
                     <div className="form-fields">

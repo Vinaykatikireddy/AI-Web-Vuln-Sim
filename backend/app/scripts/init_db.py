@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from models import base
-from database import get_db
+from database import get_db, engine, SessionLocal
 from fastapi import Depends
 
 def init_db(db: Session = Depends(get_db)):
@@ -53,5 +53,11 @@ def init_db(db: Session = Depends(get_db)):
     print("Labs initialized in the Database.")
 
 if __name__ == "__main__":
-    db = next(get_db())
-    init_db(db)
+    base.Base.metadata.create_all(bind=engine)
+
+    db = SessionLocal()
+
+    try:
+        init_db(db)
+    finally:
+        db.close()

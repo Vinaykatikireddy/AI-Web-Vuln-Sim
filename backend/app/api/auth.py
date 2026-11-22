@@ -27,8 +27,8 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
-@router.post("/register", response_model=user_schemas.UserOut, status_code=status.HTTP_201_CREATED)
-@limiter.limit("3/minute")
+@router.post("/register", response_model=user_schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def register(request: Request, user: user_schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
     db_user = get_user_by_username(db, username=user.username)
@@ -38,6 +38,7 @@ async def register(request: Request, user: user_schemas.UserCreate, db: Session 
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    
     # Create new user
     hashed_password = security.get_password_hash(user.password)
     
@@ -46,10 +47,10 @@ async def register(request: Request, user: user_schemas.UserCreate, db: Session 
     db.commit()
     db.refresh(db_user)
 
-    return db_user
+    return {"message": "Account created successfully. Please login."}
 
 @router.post("/login", response_model=dict)
-@limiter.limit("5/minute")
+@limiter.limit("8/minute")
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, username=form_data.username, password=form_data.password)
     if not user:
@@ -66,7 +67,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 
-@router.patch("/update-user", response_model=user_schemas.UserOut)
+@router.patch("/update-user")
 def update_user(user_update: user_schemas.UserBase,current_user: base.User = Depends(security.get_current_active_user),db: Session = Depends(get_db)):
     updates = user_update.model_dump(exclude_unset=True)
 
@@ -105,6 +106,6 @@ def update_user(user_update: user_schemas.UserBase,current_user: base.User = Dep
     return current_user
 
 
-@router.get("/me", response_model=user_schemas.UserOut)
+@router.get("/me")
 def get_current_user(current_user: base.User = Depends(security.get_current_active_user)):
     return current_user

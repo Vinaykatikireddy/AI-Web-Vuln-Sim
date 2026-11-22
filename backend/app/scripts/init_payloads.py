@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
+from database import engine, SessionLocal
 from models import base
-from database import get_db
-from fastapi import Depends
 
-def init_payloads(db: Session = Depends(get_db)):
+def init_payloads(db: Session):
     sqli_payloads = [
         {"category": "sqli", "payload": "'", "description": "Single quote to break SQL query"},
         {"category": "sqli", "payload": "' OR 1=1--", "description": "Common SQL injection bypass"},
@@ -160,8 +159,14 @@ def init_payloads(db: Session = Depends(get_db)):
             db.add(db_payload)
 
     db.commit()
-    db.close()
     print("Payloads initialized successfully!")
 
-db = next(get_db())
-init_payloads(db)
+if __name__ == "__main__":
+    base.Base.metadata.create_all(bind=engine)
+
+    db = SessionLocal()
+
+    try:
+        init_payloads(db)
+    finally:
+        db.close()

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { errorHandler } from '../utils/errorHandler'
 import logoSvg from '../logo.svg';
@@ -12,6 +12,8 @@ const Login: React.FC = () => {
     const [error, setError] = useState('')
     const { login, loading } = useAuth()
     const navigate = useNavigate()
+    const location = useLocation()
+    const successMessage = location.state?.successMessage
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -53,6 +55,13 @@ const Login: React.FC = () => {
                     </p>
                 </div>
                 <form className="auth-form" onSubmit={handleSubmit}>
+                    {successMessage && (
+                        <div className="alert alert-success">
+                            <div className="alert-content">
+                                {successMessage}
+                            </div>
+                        </div>
+                    )}
                     {error && (
                         <div className="alert alert-error">
                             <div className="alert-content">
