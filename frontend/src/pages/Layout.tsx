@@ -133,10 +133,6 @@ const Layout: React.FC = () => {
                 </div>
               ) : user ? (
                 <div className="user-profile-bar">
-                  <span className="user-badge">
-                    {user?.username}
-                  </span>
-
                   <button
                     onClick={() => logout(navigate)}
                     className="btn btn-sm btn-outline btn-logout"

@@ -1,4 +1,6 @@
+import hashlib
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from models import base
 from typing import Optional
@@ -38,9 +40,47 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=30)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "jti": str(uuid.uuid4())})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
+
+
+def _get_token_identifier(token: str, payload: dict) -> str:
+    jti = payload.get("jti")
+    if jti:
+        return str(jti)
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def is_token_revoked(db: Session, token_id: str) -> bool:
+    return (
+        db.query(base.RevokedToken)
+        .filter(base.RevokedToken.jti == token_id)
+        .first()
+        is not None
+    )
+
+
+def revoke_token(db: Session, token: str) -> None:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except JWTError:
+        return
+
+    token_id = _get_token_identifier(token, payload)
+    exp = payload.get("exp")
+    expires_at = (
+        datetime.fromtimestamp(exp, tz=timezone.utc)
+        if exp is not None
+        else datetime.now(timezone.utc) + timedelta(minutes=30)
+    )
+
+    if not is_token_revoked(db, token_id):
+        db.query(base.RevokedToken).filter(
+            base.RevokedToken.expires_at < datetime.now(timezone.utc)
+        ).delete(synchronize_session=False)
+        db.add(base.RevokedToken(jti=token_id, expires_at=expires_at))
+        db.commit()
 
 
 def authenticate_user(db: Session, username: str, password: str):
@@ -70,6 +110,8 @@ def get_current_active_user(
         if username is None:
             raise credentials_exception
     except JWTError:
+        raise credentials_exception
+    if is_token_revoked(db, _get_token_identifier(token, payload)):
         raise credentials_exception
     user = get_user_by_username(db, username=username)
     if user is None:

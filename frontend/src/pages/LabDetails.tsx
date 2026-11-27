@@ -10,6 +10,8 @@ const LabDetails: React.FC = () => {
     const [lab, setLab] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [togglingComplete, setTogglingComplete] = useState(false)
+    const [toggleError, setToggleError] = useState('')
 
     useEffect(() => {
         const fetchLab = async () => {
@@ -63,6 +65,30 @@ const LabDetails: React.FC = () => {
 
     if (!lab) return null
 
+    const handleToggleComplete = async () => {
+        setTogglingComplete(true)
+        setToggleError('')
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/labs/${lab.id}/complete`,
+                {},
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth')}`
+                    }
+                }
+            )
+            setLab((prev: any) => ({
+                ...prev,
+                completed: response.data.completed
+            }))
+        } catch (err: any) {
+            setToggleError(errorHandler(err))
+        } finally {
+            setTogglingComplete(false)
+        }
+    }
+
     const vulnerabilityIcons: Record<string, JSX.Element> = {
         'SQL Injection': <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
         'XSS': <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
@@ -94,16 +120,44 @@ const LabDetails: React.FC = () => {
                             </button>
                             <h1 className="page-title">{lab.name}</h1>
                         </div>
+
+                        <label
+                            className={`lab-complete-toggle ${lab.completed ? 'is-completed' : ''} ${togglingComplete ? 'is-disabled' : ''}`}
+                        >
+                            <input
+                                type="checkbox"
+                                className="lab-complete-input"
+                                checked={Boolean(lab.completed)}
+                                onChange={handleToggleComplete}
+                                disabled={togglingComplete}
+                            />
+                            <span className="lab-complete-box" aria-hidden="true">
+                                {lab.completed && (
+                                    <svg className="lab-complete-check" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                )}
+                            </span>
+                            <span>
+                                {togglingComplete
+                                    ? 'Updating...'
+                                    : lab.completed
+                                    ? 'Completed'
+                                    : 'Mark as completed'}
+                            </span>
+                        </label>
                     </div>
+                    {toggleError && (
+                        <p className="alert-message" style={{ color: 'var(--color-danger, #f87171)', marginBottom: '1rem' }}>
+                            {toggleError}
+                        </p>
+                    )}
 
                     <div className="lab-details-grid">
                         <div className="card lab-main-card">
                             <div className="card-body">
                                 <div>
                                     <div className="lab-status-banner">
-                                        <span className="badge badge-lg badge-success">
-                                            Active
-                                        </span>
                                         <p className="lab-desc-lead">{lab.description || 'No description available'}</p>
                                     </div>
 

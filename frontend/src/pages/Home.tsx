@@ -16,7 +16,7 @@ const Home: React.FC = () => {
                     <div className="hero-actions">
                         <div className="hero-btn-wrap">
                             <Link
-                                to={localStorage.getItem('auth') ? '/dashboard' : '/register'}
+                                to={localStorage.getItem('auth') ? '/dashboard' : '/login'}
                               className="btn btn-primary btn-lg"
                             >
                               Get Started

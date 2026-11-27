@@ -4,13 +4,27 @@ import axios from 'axios'
 import { errorHandler } from '../utils/errorHandler'
 import { retry } from '../utils/retry'
 import { cancelRequest } from '../utils/cancelRequest'
+import { useAuth } from '../context/AuthContext'
 
 const Profile: React.FC = () => {
     const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL;
+    const { updateSession, logout } = useAuth();
     const [user, setUser] = useState<any>(null)
+    const [initialUser, setInitialUser] = useState<{ username: string; email: string } | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [profileError, setProfileError] = useState('')
+    const [profileSuccess, setProfileSuccess] = useState('')
+    const [deleteError, setDeleteError] = useState('')
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [deletePassword, setDeletePassword] = useState('')
+    const [isDeleting, setIsDeleting] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [passwordError, setPasswordError] = useState('')
+    const [passwordSuccess, setPasswordSuccess] = useState('')
+    const [isChangingPassword, setIsChangingPassword] = useState(false)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -24,6 +38,10 @@ const Profile: React.FC = () => {
                     cancelToken: cancelTokenSource.token
                 }));
                 setUser(response.data)
+                setInitialUser({
+                    username: response.data.username,
+                    email: response.data.email
+                })
             } catch (err: any) {
                 if (!axios.isCancel(err)) {
                     setError(errorHandler(err));
@@ -39,76 +57,104 @@ const Profile: React.FC = () => {
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault()
+        setProfileError('')
+        setProfileSuccess('')
+
+        const trimmedUsername = (user?.username ?? '').trim()
+        const trimmedEmail = (user?.email ?? '').trim()
+
+        if (
+            initialUser &&
+            trimmedUsername === initialUser.username &&
+            trimmedEmail === initialUser.email
+        ) {
+            return
+        }
+
         setIsSaving(true)
-        const { cancelTokenSource, cancelRequest: cancel } = cancelRequest();
+        const { cancelTokenSource } = cancelRequest();
         try {
             const response = await retry(() => axios.patch(`${API_BASE_URL}/auth/update-user`, {
-                username: user.username,
-                email: user.email
+                username: trimmedUsername,
+                email: trimmedEmail
             }, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth')}`
                 },
                 cancelToken: cancelTokenSource.token
             }));
-            setUser(response.data)
-            alert('Profile updated successfully!')
+            const { access_token, token_type, ...updatedUser } = response.data
+            setUser(updatedUser)
+            setInitialUser({
+                username: updatedUser.username,
+                email: updatedUser.email
+            })
+            updateSession(access_token ?? null, {
+                username: updatedUser.username,
+                email: updatedUser.email
+            })
+            setProfileSuccess('Profile updated successfully!')
         } catch (err: any) {
             if (!axios.isCancel(err)) {
-                setError(errorHandler(err));
+                setProfileError(errorHandler(err));
             }
         } finally {
             setIsSaving(false)
         }
     }
 
-    const handleChangePassword = async () => {
-        const currentPassword = prompt("Enter your current password:");
-        if (!currentPassword) return;
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
 
-        const newPassword = prompt("Enter your new password:");
-        if (!newPassword) return;
-
-        const confirmPassword = prompt("Confirm your new password:");
-        if (newPassword !== confirmPassword) {
-            setError("Passwords do not match.");
+        if (!newPassword) {
+            setPasswordError('Please enter a new password.');
             return;
         }
 
-        setIsSaving(true);
+        if (newPassword !== confirmPassword) {
+            setPasswordError('Passwords do not match.');
+            return;
+        }
+
+        setIsChangingPassword(true);
         try {
             await axios.post(
                 `${API_BASE_URL}/auth/change-password`,
-                { current_password: currentPassword, new_password: newPassword },
-                {headers: {'Authorization': `Bearer ${localStorage.getItem('auth')}`}}
+                { new_password: newPassword },
+                { headers: { 'Authorization': `Bearer ${localStorage.getItem('auth')}` } }
             );
-            alert("Password changed successfully!");
+            setNewPassword('');
+            setConfirmPassword('');
+            setPasswordSuccess('Password changed successfully!');
         } catch (err: any) {
-            setError(errorHandler(err));
+            setPasswordError(errorHandler(err));
         } finally {
-            setIsSaving(false);
+            setIsChangingPassword(false);
         }
     }
 
-    const handleDeleteAccount = async () => {
-        if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
+    const handleDeleteAccount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setDeleteError('');
 
-        const password = prompt("Enter your password to confirm account deletion:");
-        if (!password) return;
+        if (!deletePassword) {
+            setDeleteError('Please enter your password to confirm account deletion.');
+            return;
+        }
 
-        setIsSaving(true);
+        setIsDeleting(true);
         try {
             await axios.delete(`${API_BASE_URL}/auth/delete-account`, {
-                data: { password },
+                data: { password: deletePassword },
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('auth')}` }
             });
-            localStorage.removeItem('auth');
-            localStorage.removeItem('user');
-            navigate('/login');
+            await logout(navigate);
         } catch (err: any) {
-            setError(errorHandler(err));
+            setDeleteError(errorHandler(err));
         } finally {
-            setIsSaving(false);
+            setIsDeleting(false);
         }
     }
 
@@ -158,6 +204,23 @@ const Profile: React.FC = () => {
                             </div>
 
                             <form onSubmit={handleUpdateProfile} className="card-body profile-form">
+                                {profileError && (
+                                    <div className="alert alert-error">
+                                        <div className="alert-content">
+                                            <strong className="alert-title">Error: </strong>
+                                            <span className="alert-message">{profileError}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {profileSuccess && (
+                                    <div className="alert alert-success">
+                                        <div className="alert-content">
+                                            <span className="alert-message">{profileSuccess}</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="form-grid">
                                     <div className="form-group">
                                         <label htmlFor="username" className="form-label">
@@ -195,7 +258,7 @@ const Profile: React.FC = () => {
                                             type="text"
                                             disabled
                                             className="form-input form-input-disabled"
-                                            value={new Date(user.created_at).toLocaleDateString()}
+                                            value={new Date(user.created_at).toLocaleDateString('en-GB')}
                                         />
                                     </div>
                                 </div>
@@ -227,21 +290,68 @@ const Profile: React.FC = () => {
                                 <h2 className="card-title">Security</h2>
                             </div>
 
-                            <div className="card-body">
-                                <div className="action-row">
-                                    <div className="action-info">
-                                        <h3 className="action-title">Password</h3>
-                                        <p className="action-desc">Update your account password.</p>
+                            <form onSubmit={handleChangePassword} className="card-body profile-form">
+                                {passwordError && (
+                                    <div className="alert alert-error">
+                                        <div className="alert-content">
+                                            <strong className="alert-title">Error: </strong>
+                                            <span className="alert-message">{passwordError}</span>
+                                        </div>
                                     </div>
+                                )}
+
+                                {passwordSuccess && (
+                                    <div className="alert alert-success">
+                                        <div className="alert-content">
+                                            <span className="alert-message">{passwordSuccess}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label htmlFor="new-password" className="form-label">
+                                            New Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="newPassword"
+                                            id="new-password"
+                                            className="form-input"
+                                            placeholder="Enter new password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="confirm-password" className="form-label">
+                                            Confirm New Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            id="confirm-password"
+                                            className="form-input"
+                                            placeholder="Confirm new password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-actions">
                                     <button
-                                        onClick={handleChangePassword}
-                                        disabled={isSaving}
-                                        className="btn btn-outline"
+                                        type="submit"
+                                        disabled={isChangingPassword}
+                                        className="btn btn-primary"
                                     >
-                                        {isSaving ? 'Processing...' : 'Change Password'}
+                                        {isChangingPassword ? 'Confirming...' : 'Confirm'}
                                     </button>
                                 </div>
-                            </div>
+                            </form>
                         </div>
 
                         <div className="card profile-card card-danger">
@@ -250,19 +360,74 @@ const Profile: React.FC = () => {
                             </div>
 
                             <div className="card-body">
+                                {deleteError && (
+                                    <div className="alert alert-error">
+                                        <div className="alert-content">
+                                            <strong className="alert-title">Error: </strong>
+                                            <span className="alert-message">{deleteError}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="action-row">
                                     <div className="action-info">
                                         <h3 className="action-title">Delete Account</h3>
                                         <p className="action-desc">Permanently delete your account and all associated data. This action cannot be undone.</p>
                                     </div>
-                                    <button
-                                        onClick={handleDeleteAccount}
-                                        disabled={isSaving}
-                                        className="btn btn-danger"
-                                    >
-                                        {isSaving ? 'Processing...' : 'Delete Account'}
-                                    </button>
+                                    {!showDeleteConfirm && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setDeleteError('');
+                                                setDeletePassword('');
+                                                setShowDeleteConfirm(true);
+                                            }}
+                                            disabled={isDeleting}
+                                            className="btn btn-danger"
+                                        >
+                                            Delete Account
+                                        </button>
+                                    )}
                                 </div>
+
+                                {showDeleteConfirm && (
+                                    <form onSubmit={handleDeleteAccount} className="profile-form" style={{ marginTop: '1rem' }}>
+                                        <div className="form-group">
+                                            <label htmlFor="delete-password" className="form-label">
+                                                Confirm with your password
+                                            </label>
+                                            <input
+                                                type="password"
+                                                id="delete-password"
+                                                className="form-input"
+                                                placeholder="Enter your password"
+                                                value={deletePassword}
+                                                onChange={(e) => setDeletePassword(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-actions" style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowDeleteConfirm(false);
+                                                    setDeletePassword('');
+                                                    setDeleteError('');
+                                                }}
+                                                disabled={isDeleting}
+                                                className="btn btn-outline"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={isDeleting}
+                                                className="btn btn-danger"
+                                            >
+                                                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
                             </div>
                         </div>
                     </div>

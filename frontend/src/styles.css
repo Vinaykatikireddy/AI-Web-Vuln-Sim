@@ -172,6 +172,8 @@ a:hover {
 @media (min-width: 768px) {
   .desktop-nav {
     display: flex;
+    margin-left: auto;
+    margin-right: 1rem;
   }
 }
 
@@ -271,16 +273,6 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-}
-
-.user-badge {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-accent);
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
 }
 
 .auth-links {
@@ -1275,6 +1267,7 @@ a:hover {
 
 .lab-desc-lead {
   font-size: 1rem;
+  font-weight: 700;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -1285,6 +1278,75 @@ a:hover {
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
+}
+
+.lab-complete-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.lab-complete-toggle:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.lab-complete-toggle.is-completed {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.lab-complete-toggle.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lab-complete-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.lab-complete-box {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid var(--border-hover);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.lab-complete-toggle.is-completed .lab-complete-box {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.lab-complete-input:focus-visible + .lab-complete-box {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.lab-complete-check {
+  width: 0.8rem;
+  height: 0.8rem;
 }
 
 .section-heading {
@@ -1326,8 +1388,8 @@ a:hover {
 }
 
 .info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }

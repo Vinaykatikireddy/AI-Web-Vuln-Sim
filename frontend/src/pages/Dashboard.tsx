@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                                 <div className="stat-info">
                                     <p className="stat-label">Completed</p>
-                                    <p className="stat-value">{dashboardData.completed_scans}</p>
+                                    <p className="stat-value">{dashboardData.completed_labs ?? 0}</p>
                                 </div>
                             </div>
                         </div>

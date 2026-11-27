@@ -4,6 +4,10 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from api import attack, auth, dashboard, report, payload, lab
 from core.limiter import limiter
+from database import engine
+from models import base
+
+base.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AI-Powered Attack Simulation Platform API",

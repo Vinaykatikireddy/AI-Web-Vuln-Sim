@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,6 +19,7 @@ class User(Base):
     # Relationships
     scans = relationship("Scan", back_populates="user")
     reports = relationship("Report", back_populates="user")
+    lab_completions = relationship("LabCompletion", back_populates="user")
 
 
 class Lab(Base):
@@ -33,6 +34,21 @@ class Lab(Base):
 
     # Relationships
     scans = relationship("Scan", back_populates="lab")
+    completions = relationship("LabCompletion", back_populates="lab")
+
+
+class LabCompletion(Base):
+    __tablename__ = "lab_completions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    lab_id = Column(Integer, ForeignKey("labs.id"), nullable=False, index=True)
+    completed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (UniqueConstraint("user_id", "lab_id", name="uq_user_lab_completion"),)
+
+    user = relationship("User", back_populates="lab_completions")
+    lab = relationship("Lab", back_populates="completions")
 
 
 class Scan(Base):
@@ -96,3 +112,12 @@ class Payload(Base):
     description = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_active = Column(Boolean, default=True)
+
+
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    jti = Column(String(64), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    revoked_at = Column(DateTime(timezone=True), server_default=func.now())

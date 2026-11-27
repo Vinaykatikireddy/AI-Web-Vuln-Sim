@@ -13,8 +13,9 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   login: (username: string, password: string, navigate: (path: string) => void) => Promise<void>
-  logout: (navigate: (path: string) => void) => void
+  logout: (navigate?: (path: string) => void) => Promise<void>
   checkAuth: () => Promise<void>
+  updateSession: (newToken: string | null, updatedUser: User) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -33,7 +34,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (storedToken && storedUser) {
         const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL
-        await retry(() => axios.get(`${API_BASE_URL}/auth/verify`, {
+        await retry(() => axios.get(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`
           },
@@ -91,19 +92,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return cancel;
   }
 
-  const logout = (navigate: (path: string) => void) => {
+  const logout = async (navigate?: (path: string) => void) => {
+    const currentToken = token || localStorage.getItem('auth')
     localStorage.removeItem('auth')
     localStorage.removeItem('user')
     setToken(null)
     setUser(null)
+
+    if (currentToken) {
+      const API_BASE_URL = import.meta.env.VITE_AWVS_BASE_URL
+      try {
+        await axios.post(
+          `${API_BASE_URL}/auth/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${currentToken}`
+            }
+          }
+        )
+      } catch {
+        // Client state is already cleared; ignore server/network errors on logout
+      }
+    }
+
+    if (navigate) {
+      navigate('/login')
+    }
+  }
+
+  const updateSession = (newToken: string | null, updatedUser: User) => {
+    if (newToken) {
+      localStorage.setItem('auth', newToken)
+      setToken(newToken)
+    }
+    localStorage.setItem('user', JSON.stringify(updatedUser))
+    setUser(updatedUser)
   }
 
   useEffect(() => {
     checkAuth()
+
+    const handleUnauthorized = () => {
+      localStorage.removeItem('auth')
+      localStorage.removeItem('user')
+      setToken(null)
+      setUser(null)
+      if (window.location.pathname !== '/ai-web-vuln-sim/login') {
+        window.location.assign('/ai-web-vuln-sim/login')
+      }
+    }
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized)
+    }
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, checkAuth, updateSession }}>
       {children}
     </AuthContext.Provider>
   )

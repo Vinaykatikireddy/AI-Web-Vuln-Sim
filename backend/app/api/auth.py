@@ -50,7 +50,7 @@ async def register(request: Request, user: user_schemas.UserCreate, db: Session 
     return {"message": "Account created successfully. Please login."}
 
 @router.post("/login", response_model=dict)
-@limiter.limit("8/minute")
+# @limiter.limit("8/minute")
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, username=form_data.username, password=form_data.password)
     if not user:
@@ -103,7 +103,74 @@ def update_user(user_update: user_schemas.UserBase,current_user: base.User = Dep
         db.rollback()
         raise
 
-    return current_user
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "created_at": current_user.created_at,
+        "access_token": security.create_access_token(data={"sub": current_user.username}),
+        "token_type": "bearer",
+    }
+
+
+@router.post("/change-password", response_model=user_schemas.UserResponse)
+def change_password(
+    password_data: user_schemas.PasswordChange,
+    current_user: base.User = Depends(security.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        current_user.password_hash = security.get_password_hash(password_data.new_password)
+        db.commit()
+        db.refresh(current_user)
+    except Exception:
+        db.rollback()
+        raise
+
+    return {"message": "Password changed successfully."}
+
+
+@router.post("/logout")
+def logout(
+    token: str = Depends(security.oauth2_scheme),
+    current_user: base.User = Depends(security.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    security.revoke_token(db, token)
+    return {"message": "Logged out successfully."}
+
+
+@router.delete("/delete-account", response_model=user_schemas.UserResponse)
+def delete_account(
+    delete_data: user_schemas.AccountDelete,
+    token: str = Depends(security.oauth2_scheme),
+    current_user: base.User = Depends(security.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    if not security.verify_password(delete_data.password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password",
+        )
+
+    try:
+        scan_ids = [
+            scan.id
+            for scan in db.query(base.Scan.id).filter(base.Scan.user_id == current_user.id).all()
+        ]
+        if scan_ids:
+            db.query(base.Log).filter(base.Log.scan_id.in_(scan_ids)).delete(synchronize_session=False)
+            db.query(base.Report).filter(base.Report.scan_id.in_(scan_ids)).delete(synchronize_session=False)
+        db.query(base.Report).filter(base.Report.user_id == current_user.id).delete(synchronize_session=False)
+        db.query(base.Scan).filter(base.Scan.user_id == current_user.id).delete(synchronize_session=False)
+        db.delete(current_user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    security.revoke_token(db, token)
+    return {"message": "Account deleted successfully."}
 
 
 @router.get("/me")
