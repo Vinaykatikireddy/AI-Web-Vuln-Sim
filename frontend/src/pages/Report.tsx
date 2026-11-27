@@ -95,7 +95,8 @@ const Report: React.FC = () => {
 
   const renderContent = () => {
     try {
-      const content = JSON.parse(report.content)
+      const content =
+        typeof report.content === 'string' ? JSON.parse(report.content) : report.content
 
       return (
         <div className="report-document">
@@ -103,18 +104,28 @@ const Report: React.FC = () => {
 
           <div className="doc-section executive-summary">
             <h2 className="doc-section-title">Executive Summary</h2>
-            <p className="doc-paragraph">This report summarizes the security assessment of the {scan.lab.name} application. The evaluation identified {content.findings.length} security vulnerabilities with a risk score of {content.risk_score}.</p>
-            <p className="doc-paragraph">The assessment was performed on {new Date(report.generated_at).toLocaleDateString()} using AI-powered analysis.</p>
+            <p className="doc-paragraph">
+              {content.executive_summary ||
+                `This report summarizes the security assessment of the ${scan.lab?.name || 'target'} application. The evaluation identified ${content.findings?.length || 0} security vulnerabilities with a risk score of ${content.risk_score ?? 0}.`}
+            </p>
+            <p className="doc-paragraph">
+              Risk Score: <strong>{content.risk_score ?? 0}/100</strong> · Performed on{' '}
+              {new Date(report.generated_at).toLocaleDateString()} using AI-powered analysis.
+            </p>
           </div>
 
           <div className="doc-section">
             <h2 className="doc-section-title">Findings</h2>
 
-            {content.findings.map((finding: any, index: number) => (
+            {(!content.findings || content.findings.length === 0) && (
+              <p className="doc-paragraph">No verified vulnerabilities were recorded during this run.</p>
+            )}
+
+            {(content.findings || []).map((finding: any, index: number) => (
               <div key={index} className="finding-card">
                 <div className="finding-header">
                   <div className="finding-title-group">
-                    <h3 className="finding-title">{finding.vulnerability_type}</h3>
+                    <h3 className="finding-title">{finding.title || finding.vulnerability_type}</h3>
                     <span className={`badge ${
                       finding.risk_level === 'critical' ? 'badge-critical' :
                       finding.risk_level === 'high' ? 'badge-high' :
@@ -133,10 +144,15 @@ const Report: React.FC = () => {
                   <h4 className="finding-subheading">Technical Explanation</h4>
                   <p className="finding-text">{finding.technical_explanation}</p>
 
-                  <h4 className="finding-subheading">Example Exploitation</h4>
+                  <h4 className="finding-subheading">Proof-of-Concept Evidence</h4>
                   <p className="finding-text">{finding.example_exploitation}</p>
+                  {finding.poc_evidence && (
+                    <pre className="code-block" style={{ marginBottom: '1rem' }}>
+                      <code>{`Log #${finding.poc_evidence.log_id ?? 'N/A'}\nRequest: ${finding.poc_evidence.request}\nResponse:\n${finding.poc_evidence.response_excerpt}`}</code>
+                    </pre>
+                  )}
 
-                  <h4 className="finding-subheading">Prevention</h4>
+                  <h4 className="finding-subheading">Remediation &amp; Prevention</h4>
                   <p className="finding-text">{finding.prevention}</p>
 
                   <h4 className="finding-subheading">Secure Code Recommendation</h4>

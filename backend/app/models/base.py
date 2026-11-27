@@ -67,7 +67,27 @@ class Scan(Base):
     user = relationship("User", back_populates="scans")
     lab = relationship("Lab", back_populates="scans")
     logs = relationship("Log", back_populates="scan")
+    steps = relationship("AgentStep", back_populates="scan", order_by="AgentStep.step_number")
     report = relationship("Report", uselist=False, back_populates="scan")
+
+
+class AgentStep(Base):
+    __tablename__ = "agent_steps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    scan_id = Column(Integer, ForeignKey("scans.id"), nullable=False, index=True)
+    step_number = Column(Integer, nullable=False)
+    role = Column(String(20), nullable=False)  # assistant, user, tool, finding
+    phase = Column(String(30), nullable=False)  # recon, hypothesis, test, observe, interact, complete
+    thought = Column(Text)
+    action_name = Column(String(50))
+    action_input = Column(Text)  # JSON string
+    observation = Column(Text)
+    log_id = Column(Integer, ForeignKey("logs.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    scan = relationship("Scan", back_populates="steps")
+    log = relationship("Log")
 
 
 class Log(Base):

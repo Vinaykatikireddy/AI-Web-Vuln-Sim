@@ -181,7 +181,7 @@ const LabDetails: React.FC = () => {
                                                 rel="noopener noreferrer"
                                                 className="btn btn-outline"
                                             >
-                                                Visit Target Site ↗
+                                                Explore Target Site ↗
                                             </a>
                                         )}
                                     </div>

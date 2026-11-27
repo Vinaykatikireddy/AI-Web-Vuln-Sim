@@ -1,12 +1,12 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 
 
 class ReportBase(BaseModel):
     scan_id: int
     format: str = "html"
-    content: Optional[str] = None
+    content: Optional[Any] = None
 
 
 class ReportOut(ReportBase):
@@ -20,6 +20,6 @@ class ReportOut(ReportBase):
 
 
 class ReportDetail(ReportOut):
-    content: str
+    content: Any
     scan: dict
     user: dict
